@@ -61,7 +61,16 @@ class ClassMapping(
                 throw new Exception("invalid mapping");
             }
 
-            assignations.Add($"""{targetProperty.Identifier.Text} = this.{targetProperty.Identifier.Text}""");
+            var propertyTypeSymbol = targetProperty.GetPropertyTypeSymbol(context);
+            if (!propertyTypeSymbol!.IsPrimitiveType())
+            {
+                // TODO: Explicitly check for [MapFrom/MapTo] attribute and map accordingly.
+                assignations.Add($"""{targetProperty.Identifier.Text} = source.{sourceProperty.Identifier.Text}.MapTo{propertyTypeSymbol!.Name}()""");
+            }
+            else
+            {
+                assignations.Add($"""{targetProperty.Identifier.Text} = source.{sourceProperty.Identifier.Text}""");
+            }
         }
 
         return assignations;
@@ -83,9 +92,17 @@ class ClassMapping(
                     targetProperty.Identifier.Text == sourceProperty.Identifier.Text
                     && targetProperty.GetType() == sourceProperty.GetType());
 
-            if (targetProperty is not null)
+            if (targetProperty is null) continue;
+
+            var propertyTypeSymbol = targetProperty.GetPropertyTypeSymbol(context);
+            if (!propertyTypeSymbol!.IsPrimitiveType())
             {
-                assignations.Add($"""{targetProperty.Identifier.Text} = source.{targetProperty.Identifier.Text}""");
+                // TODO: Explicitly check for [MapFrom/MapTo] attribute and map accordingly.
+                assignations.Add($"""{targetProperty.Identifier.Text} = source.{sourceProperty.Identifier.Text}.MapTo{propertyTypeSymbol!.Name}()""");
+            }
+            else
+            {
+                assignations.Add($"""{targetProperty.Identifier.Text} = source.{sourceProperty.Identifier.Text}""");
             }
         }
 
