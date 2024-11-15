@@ -1,7 +1,9 @@
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
@@ -17,15 +19,17 @@ public class CartographeGenerator : IIncrementalGenerator
 
 namespace {Namespace}
 {{
-    [System.AttributeUsage(System.AttributeTargets.Class)]
+    [System.AttributeUsage(System.AttributeTargets.Class, AllowMultiple = true)]
     public class MapToAttribute : System.Attribute
     {{
-        public MapToAttribute(System.Type targetClassName)
+        public MapToAttribute(System.Type targetClassName, bool Exhaustive = true)
         {{
             TargetClassName = targetClassName;
+            Exhaustive = Exhaustive;
         }}
 
         public System.Type TargetClassName {{ get; }}
+        public bool Exhaustive {{ get; set; }}
     }}
 }}";
 
@@ -39,8 +43,7 @@ namespace {Namespace}
             .CreateSyntaxProvider(
                 (s, _) => s is ClassDeclarationSyntax,
                 (ctx, _) => GetClassDeclarationForSourceGen(ctx))
-            .Where(t => t.Item2)
-            .Select((t, _) => t.mapping);
+            .Where(mappings => mappings.Count > 0);
 
         var incrementalValueProvider = provider.Collect();
 
@@ -48,27 +51,34 @@ namespace {Namespace}
             (ctx, t) => GenerateCode(ctx, t.Left, t.Right));
     }
 
-    private static (ClassMapping mapping, bool) GetClassDeclarationForSourceGen(GeneratorSyntaxContext context)
+    private static List<ClassMapping> GetClassDeclarationForSourceGen(GeneratorSyntaxContext context)
     {
         var sourceClassDeclarationSyntax = (ClassDeclarationSyntax)context.Node;
-
+        var classMappings = new List<ClassMapping>();
         foreach (var attributeListSyntax in sourceClassDeclarationSyntax.AttributeLists)
-            foreach (var attributeArgumentSyntax in from attributeSyntax in attributeListSyntax.Attributes
-                                                    where attributeSyntax.Name.ToString() != $"{Namespace}.{AttributeName}"
-                                                    select attributeSyntax.ArgumentList?.Arguments.First())
+            foreach (var arguments in
+                     from attributeSyntax in attributeListSyntax.Attributes
+                     where attributeSyntax.Name.ToString() != $"{Namespace}.{AttributeName}"
+                     select attributeSyntax.ArgumentList?.Arguments)
             {
-                if (attributeArgumentSyntax?.Expression is not TypeOfExpressionSyntax typeOfExpressionSyntax) continue;
+                var targetTypeArgument = arguments?.FirstOrDefault();
+                var exhaustiveArgument = arguments?
+                    .SingleOrDefault(arg => arg.NameEquals?.Name.ToString() == "Exhaustive")?
+                    .Expression as LiteralExpressionSyntax;
+                var exhaustive = exhaustiveArgument?.Kind() == SyntaxKind.TrueLiteralExpression;
+
+                if (targetTypeArgument?.Expression is not TypeOfExpressionSyntax typeOfExpressionSyntax) continue;
 
                 var targetIdentifierName = typeOfExpressionSyntax.Type as IdentifierNameSyntax;
-                var targetSymbolInfo = context.SemanticModel.GetSymbolInfo(targetIdentifierName!);
+                var targetSymbolInfo = ModelExtensions.GetSymbolInfo(context.SemanticModel, targetIdentifierName!);
                 var targetClassSyntax = ClassDeclarationSyntaxFromSymbolInfo(targetSymbolInfo);
 
                 if (targetClassSyntax is null) continue;
 
-                return (new ClassMapping(sourceClassDeclarationSyntax, targetClassSyntax), true);
+                classMappings.Add(new ClassMapping(sourceClassDeclarationSyntax, targetClassSyntax, exhaustive));
             }
 
-        return (new ClassMapping(sourceClassDeclarationSyntax), false);
+        return classMappings;
     }
 
     private static ClassDeclarationSyntax? ClassDeclarationSyntaxFromSymbolInfo(SymbolInfo targetSymbolInfo)
@@ -88,17 +98,16 @@ namespace {Namespace}
     }
 
     private void GenerateCode(SourceProductionContext context, Compilation compilation,
-        ImmutableArray<ClassMapping> classDeclarations)
+        ImmutableArray<List<ClassMapping>> classDeclarations)
     {
+        var classMappings = classDeclarations.SelectMany(t => t)
+            .ToList();
 
-        foreach (var classMapping in classDeclarations)
+        foreach (var classMapping in classMappings)
         {
             var generatedMapping = classMapping.GenerateMapping(compilation);
-            if (generatedMapping is not null)
-            {
-                context.AddSource($"{classMapping.SourceClassName}.g.cs", SourceText.From(generatedMapping, Encoding.UTF8));
-            }
+            context.AddSource($"{classMapping.SourceClassName}To{classMapping.TargetClassName}.g.cs",
+                SourceText.From(generatedMapping, Encoding.UTF8));
         }
     }
 }
-

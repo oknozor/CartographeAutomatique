@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -6,51 +8,24 @@ namespace CartographeAutomatique;
 
 class ClassMapping
 {
-    private readonly ClassDeclarationSyntax SourceClass;
-    private readonly ClassDeclarationSyntax? TargetClass;
+    private readonly ClassDeclarationSyntax _sourceClass;
+    private readonly ClassDeclarationSyntax _targetClass;
+    private readonly bool _exhaustive;
 
-    public ClassMapping(ClassDeclarationSyntax sourceClass)
+    public ClassMapping(ClassDeclarationSyntax sourceClass, ClassDeclarationSyntax targetClass, bool exhaustive)
     {
-        SourceClass = sourceClass;
+        _sourceClass = sourceClass;
+        _targetClass = targetClass;
+        _exhaustive = exhaustive;
     }
 
-    public ClassMapping(ClassDeclarationSyntax sourceClass, ClassDeclarationSyntax targetClass)
+    public string GenerateMapping(Compilation compilation)
     {
-        SourceClass = sourceClass;
-        TargetClass = targetClass;
-    }
-
-    public string? GenerateMapping(Compilation compilation)
-    {
-        if (TargetClass is null)
+        var assignations = _exhaustive switch
         {
-            return null;
-        }
-
-        var sourceInstanceVar = TargetClassName.ToLower();
-
-        var sourceProperties = new Dictionary<string, MemberDeclarationSyntax>();
-        foreach (var memberDeclarationSyntax in SourceClass.Members)
-        {
-            if (memberDeclarationSyntax is PropertyDeclarationSyntax property)
-            {
-                sourceProperties.Add(property.Identifier.Text, property);
-            }
-        }
-
-        List<string> assignations = [];
-
-        foreach (var memberDeclarationSyntax in TargetClass.Members)
-        {
-            if (memberDeclarationSyntax is not PropertyDeclarationSyntax targetProperty) continue;
-            if (!sourceProperties.TryGetValue(targetProperty.Identifier.Text, out var sourceProperty)) continue;
-
-            var sourceType = sourceProperty.GetType();
-            var targetType = targetProperty.GetType();
-            if (sourceType != targetType) continue;
-
-            assignations.Add($"""{targetProperty.Identifier.Text} = this.{targetProperty.Identifier.Text}""");
-        }
+            false => GenerateAssignationNonExhaustive(),
+            true => GenerateAssignationExhaustive(),
+        };
 
         var sourceNameSpace = SourceNameSpace(compilation)!;
         var targetNameSpace = TargetNameSpace(compilation)!;
@@ -71,25 +46,80 @@ class ClassMapping
                  """;
     }
 
+    private List<string> GenerateAssignationExhaustive()
+    {
+        List<string> assignations = [];
+        foreach (var memberDeclarationSyntax in _sourceClass.Members)
+        {
+            if (memberDeclarationSyntax is not PropertyDeclarationSyntax sourceProperty)
+            {
+                continue;
+            }
+
+            var targetProperty = _targetClass.Members
+                .OfType<PropertyDeclarationSyntax>()
+                .SingleOrDefault(targetProperty =>
+                    targetProperty.Identifier.Text == sourceProperty.Identifier.Text
+                    && targetProperty.GetType() == sourceProperty.GetType());
+
+            if (targetProperty is null)
+            {
+                // TODO emit compiler error
+                throw new Exception("invalid mapping");
+            }
+
+            assignations.Add($"""{targetProperty.Identifier.Text} = this.{targetProperty.Identifier.Text}""");
+        }
+
+        return assignations;
+    }
+
+    private List<string> GenerateAssignationNonExhaustive()
+    {
+        List<string> assignations = [];
+        foreach (var memberDeclarationSyntax in _sourceClass.Members)
+        {
+            if (memberDeclarationSyntax is not PropertyDeclarationSyntax sourceProperty)
+            {
+                continue;
+            }
+
+            var targetProperty = _targetClass.Members
+                .OfType<PropertyDeclarationSyntax>()
+                .SingleOrDefault(targetProperty =>
+                    targetProperty.Identifier.Text == sourceProperty.Identifier.Text
+                    && targetProperty.GetType() == sourceProperty.GetType());
+
+            if (targetProperty is not null)
+            {
+                assignations.Add($"""{targetProperty.Identifier.Text} = this.{targetProperty.Identifier.Text}""");
+            }
+
+        }
+
+        return assignations;
+    }
+
+
     private string? TargetNameSpace(Compilation compilation)
     {
-        var sourceSemanticModel = compilation.GetSemanticModel(TargetClass!.SyntaxTree);
-        if (sourceSemanticModel.GetDeclaredSymbol(TargetClass) is not INamedTypeSymbol sourceClassSymbol)
+        var sourceSemanticModel = compilation.GetSemanticModel(_targetClass.SyntaxTree);
+        if (sourceSemanticModel.GetDeclaredSymbol(_targetClass) is not INamedTypeSymbol sourceClassSymbol)
             return null;
 
         return sourceClassSymbol.ContainingNamespace.ToDisplayString();
     }
 
-    private string TargetClassName => TargetClass!.Identifier.Text;
+    public string TargetClassName => _targetClass.Identifier.Text;
 
     private string? SourceNameSpace(Compilation compilation)
     {
-        var sourceSemanticModel = compilation.GetSemanticModel(SourceClass.SyntaxTree);
-        if (sourceSemanticModel.GetDeclaredSymbol(SourceClass) is not INamedTypeSymbol sourceClassSymbol)
+        var sourceSemanticModel = compilation.GetSemanticModel(_sourceClass.SyntaxTree);
+        if (sourceSemanticModel.GetDeclaredSymbol(_sourceClass) is not INamedTypeSymbol sourceClassSymbol)
             return null;
 
         return sourceClassSymbol.ContainingNamespace.ToDisplayString();
     }
 
-    public string SourceClassName => SourceClass.Identifier.Text;
+    public string SourceClassName => _sourceClass.Identifier.Text;
 }
