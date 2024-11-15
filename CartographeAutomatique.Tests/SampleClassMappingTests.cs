@@ -34,7 +34,7 @@ public class SampleMapGeneratorTests
         };
 
         Point point = vector3.MapToPoint();
-        
+
         Assert.Equal(vector3.X, point.X);
         Assert.Equal(vector3.Y, point.Y);
         Assert.Equal(vector3.Z, point.Z);
