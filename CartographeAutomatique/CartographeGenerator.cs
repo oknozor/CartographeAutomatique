@@ -75,7 +75,7 @@ namespace {Namespace}
 
                 if (targetClassSyntax is null) continue;
 
-                classMappings.Add(new ClassMapping(sourceClassDeclarationSyntax, targetClassSyntax, exhaustive));
+                classMappings.Add(new ClassMapping(sourceClassDeclarationSyntax, targetClassSyntax, exhaustive, context));
             }
 
         return classMappings;
@@ -105,7 +105,7 @@ namespace {Namespace}
 
         foreach (var classMapping in classMappings)
         {
-            var generatedMapping = classMapping.GenerateMapping(compilation);
+            var generatedMapping = classMapping.GenerateMapping();
             context.AddSource($"{classMapping.SourceClassName}To{classMapping.TargetClassName}.g.cs",
                 SourceText.From(generatedMapping, Encoding.UTF8));
         }
