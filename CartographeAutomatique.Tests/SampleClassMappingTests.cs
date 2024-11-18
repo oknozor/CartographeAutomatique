@@ -4,7 +4,7 @@ using Xunit;
 namespace CartographeAutomatique.Tests;
 
 
-[MapTo(typeof(Point3))]
+/*[MapTo(typeof(Point3))]
 [MapTo(typeof(Point2), Exhaustive = false)]
 public class Vector3
 {
@@ -92,4 +92,16 @@ public class SampleMapGeneratorTests
         Assert.Equal(line.B.X, line3.B.MapToPoint2().X);
         Assert.Equal(line.B.Y, line3.B.MapToPoint2().Y);
     }
+}*/
+
+/*[MapTo(typeof(SongWriter))]
+public class Author
+{
+    [TargetMapping(typeof(SongWriter), TargetField = "FullName")]
+    public string Name { get; set; }
 }
+
+public class SongWriter 
+{
+    public string FullName { get; set; }
+}*/

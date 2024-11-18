@@ -31,6 +31,19 @@ namespace {Namespace}
         public System.Type TargetClassName {{ get; }}
         public bool Exhaustive {{ get; set; }}
     }}
+
+    [System.AttributeUsage(System.AttributeTargets.Property, AllowMultiple = true)]
+    public class TargetMappingAttribute : System.Attribute
+    {{
+        public TargetMappingAttribute(System.Type targetClassName)
+        {{
+            TargetClassName = targetClassName;
+            TargetField = """";
+        }}
+
+        public string TargetField {{ get; set;}}
+        public System.Type TargetClassName {{ get; set;}}
+    }}
 }}";
 
     public void Initialize(IncrementalGeneratorInitializationContext context)

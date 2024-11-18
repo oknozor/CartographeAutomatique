@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace CartographeAutomatique;
@@ -14,12 +15,7 @@ class ClassMapping(
 {
     public string GenerateMapping()
     {
-        var assignations = exhaustive switch
-        {
-            false => GenerateAssignationNonExhaustive(),
-            true => GenerateAssignationExhaustive(),
-        };
-
+        var assignations = GenerateAssignation();
         var sourceNameSpace = SourceNameSpace()!;
         var targetNameSpace = TargetNameSpace()!;
 
@@ -39,7 +35,11 @@ class ClassMapping(
                  """;
     }
 
-    private List<string> GenerateAssignationExhaustive()
+    public string SourceClassName => sourceClass.Identifier.Text;
+    public string TargetClassName => targetClass.Identifier.Text;
+
+
+    private List<string> GenerateAssignation()
     {
         List<string> assignations = [];
         foreach (var memberDeclarationSyntax in sourceClass.Members)
@@ -49,84 +49,70 @@ class ClassMapping(
                 continue;
             }
 
+            var matchingTargetMappingAttribute = GetMatchingTargetMappingAttribute(memberDeclarationSyntax);
+            var targetField = matchingTargetMappingAttribute?.ArgumentList?
+                .Arguments
+                .First(arg => arg.NameEquals?.Name.ToString() == "TargetField");
+
+            var targetFieldName = sourceProperty.Identifier.Text;
+            
+            if (targetField != null)
+            {
+                var constantValue = context.SemanticModel.GetConstantValue(targetField.Expression);
+                if (constantValue is { HasValue: true, Value: string targetMappingFieldName })
+                {
+                    targetFieldName = targetMappingFieldName;
+                }
+            }
+            
             var targetProperty = targetClass.Members
                 .OfType<PropertyDeclarationSyntax>()
                 .SingleOrDefault(targetProperty =>
-                    targetProperty.Identifier.Text == sourceProperty.Identifier.Text
+                    targetProperty.Identifier.Text == targetFieldName
                     && targetProperty.GetType() == sourceProperty.GetType());
 
             if (targetProperty is null)
             {
-                // TODO emit compiler error
+                if (exhaustive is false)
+                    continue;
+
                 throw new Exception("invalid mapping");
             }
 
             var propertyTypeSymbol = targetProperty.GetPropertyTypeSymbol(context);
-            if (!propertyTypeSymbol!.IsPrimitiveType())
-            {
-                // TODO: Explicitly check for [MapFrom/MapTo] attribute and map accordingly.
-                assignations.Add($"""{targetProperty.Identifier.Text} = source.{sourceProperty.Identifier.Text}.MapTo{propertyTypeSymbol!.Name}()""");
-            }
-            else
-            {
-                assignations.Add($"""{targetProperty.Identifier.Text} = source.{sourceProperty.Identifier.Text}""");
-            }
+            assignations.Add(!propertyTypeSymbol!.IsPrimitiveType()
+                ? $"""{targetProperty.Identifier.Text} = source.{sourceProperty.Identifier.Text}.MapTo{propertyTypeSymbol!.Name}()"""
+                : $"""{targetProperty.Identifier.Text} = source.{sourceProperty.Identifier.Text}""");
         }
 
         return assignations;
     }
-
-    private List<string> GenerateAssignationNonExhaustive()
-    {
-        List<string> assignations = [];
-        foreach (var memberDeclarationSyntax in sourceClass.Members)
-        {
-            if (memberDeclarationSyntax is not PropertyDeclarationSyntax sourceProperty)
-            {
-                continue;
-            }
-
-            var targetProperty = targetClass.Members
-                .OfType<PropertyDeclarationSyntax>()
-                .SingleOrDefault(targetProperty =>
-                    targetProperty.Identifier.Text == sourceProperty.Identifier.Text
-                    && targetProperty.GetType() == sourceProperty.GetType());
-
-            if (targetProperty is null) continue;
-
-            var propertyTypeSymbol = targetProperty.GetPropertyTypeSymbol(context);
-            if (!propertyTypeSymbol!.IsPrimitiveType())
-            {
-                // TODO: Explicitly check for [MapFrom/MapTo] attribute and map accordingly.
-                assignations.Add($"""{targetProperty.Identifier.Text} = source.{sourceProperty.Identifier.Text}.MapTo{propertyTypeSymbol!.Name}()""");
-            }
-            else
-            {
-                assignations.Add($"""{targetProperty.Identifier.Text} = source.{sourceProperty.Identifier.Text}""");
-            }
-        }
-
-        return assignations;
-    }
-
 
     private string? TargetNameSpace()
     {
-        if (context.SemanticModel.GetDeclaredSymbol(targetClass) is not INamedTypeSymbol sourceClassSymbol)
+        if (ModelExtensions.GetDeclaredSymbol(context.SemanticModel, targetClass) is not INamedTypeSymbol sourceClassSymbol)
             return null;
 
         return sourceClassSymbol.ContainingNamespace.ToDisplayString();
     }
-
-    public string TargetClassName => targetClass.Identifier.Text;
-
+    
     private string? SourceNameSpace()
     {
-        if (context.SemanticModel.GetDeclaredSymbol(sourceClass) is not INamedTypeSymbol sourceClassSymbol)
+        if (ModelExtensions.GetDeclaredSymbol(context.SemanticModel, sourceClass) is not INamedTypeSymbol sourceClassSymbol)
             return null;
 
         return sourceClassSymbol.ContainingNamespace.ToDisplayString();
     }
 
-    public string SourceClassName => sourceClass.Identifier.Text;
+    private AttributeSyntax? GetMatchingTargetMappingAttribute(MemberDeclarationSyntax memberDeclarationSyntax) =>
+        memberDeclarationSyntax
+            .AttributeLists
+            .SelectMany(x => x.Attributes)
+            .Where(a => a.Name is IdentifierNameSyntax { Identifier.ValueText: "TargetMapping" })
+            .SingleOrDefault(x =>
+                x.ArgumentList != null && x.ArgumentList.Arguments
+                    .Any(arg =>
+                        arg.Expression is TypeOfExpressionSyntax { Type: IdentifierNameSyntax identifierNameSyntax } &&
+                        identifierNameSyntax.Identifier.Text == TargetClassName)
+            );
 }
