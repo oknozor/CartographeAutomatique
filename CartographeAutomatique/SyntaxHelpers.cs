@@ -1,3 +1,4 @@
+using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -42,6 +43,18 @@ public static class SyntaxHelpers
 
         return null;
     }
+
+    public static AttributeSyntax? GetMatchingTargetMappingAttribute(this MemberDeclarationSyntax memberDeclarationSyntax, string targetClassName) =>
+        memberDeclarationSyntax
+            .AttributeLists
+            .SelectMany(x => x.Attributes)
+            .Where(a => a.Name is IdentifierNameSyntax { Identifier.ValueText: "TargetMapping" })
+            .SingleOrDefault(x =>
+                x.ArgumentList != null && x.ArgumentList.Arguments
+                    .Any(arg =>
+                        arg.Expression is TypeOfExpressionSyntax { Type: IdentifierNameSyntax identifierNameSyntax } &&
+                        identifierNameSyntax.Identifier.Text == targetClassName)
+            );
 
 
 }

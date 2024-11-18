@@ -2,12 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace CartographeAutomatique;
 
-class ClassMapping(
+internal class ClassMapping(
     ClassDeclarationSyntax sourceClass,
     ClassDeclarationSyntax targetClass,
     bool exhaustive,
@@ -49,13 +48,13 @@ class ClassMapping(
                 continue;
             }
 
-            var matchingTargetMappingAttribute = GetMatchingTargetMappingAttribute(memberDeclarationSyntax);
+            var matchingTargetMappingAttribute = memberDeclarationSyntax.GetMatchingTargetMappingAttribute(TargetClassName);
             var targetField = matchingTargetMappingAttribute?.ArgumentList?
                 .Arguments
                 .First(arg => arg.NameEquals?.Name.ToString() == "TargetField");
 
             var targetFieldName = sourceProperty.Identifier.Text;
-            
+
             if (targetField != null)
             {
                 var constantValue = context.SemanticModel.GetConstantValue(targetField.Expression);
@@ -64,7 +63,7 @@ class ClassMapping(
                     targetFieldName = targetMappingFieldName;
                 }
             }
-            
+
             var targetProperty = targetClass.Members
                 .OfType<PropertyDeclarationSyntax>()
                 .SingleOrDefault(targetProperty =>
@@ -90,29 +89,19 @@ class ClassMapping(
 
     private string? TargetNameSpace()
     {
-        if (ModelExtensions.GetDeclaredSymbol(context.SemanticModel, targetClass) is not INamedTypeSymbol sourceClassSymbol)
+        if (context.SemanticModel.GetDeclaredSymbol(targetClass) is not INamedTypeSymbol sourceClassSymbol)
             return null;
 
         return sourceClassSymbol.ContainingNamespace.ToDisplayString();
     }
-    
+
     private string? SourceNameSpace()
     {
-        if (ModelExtensions.GetDeclaredSymbol(context.SemanticModel, sourceClass) is not INamedTypeSymbol sourceClassSymbol)
+        if (context.SemanticModel.GetDeclaredSymbol(sourceClass) is not INamedTypeSymbol sourceClassSymbol)
             return null;
 
         return sourceClassSymbol.ContainingNamespace.ToDisplayString();
     }
 
-    private AttributeSyntax? GetMatchingTargetMappingAttribute(MemberDeclarationSyntax memberDeclarationSyntax) =>
-        memberDeclarationSyntax
-            .AttributeLists
-            .SelectMany(x => x.Attributes)
-            .Where(a => a.Name is IdentifierNameSyntax { Identifier.ValueText: "TargetMapping" })
-            .SingleOrDefault(x =>
-                x.ArgumentList != null && x.ArgumentList.Arguments
-                    .Any(arg =>
-                        arg.Expression is TypeOfExpressionSyntax { Type: IdentifierNameSyntax identifierNameSyntax } &&
-                        identifierNameSyntax.Identifier.Text == TargetClassName)
-            );
+
 }
