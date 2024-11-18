@@ -3,7 +3,6 @@ using Xunit;
 
 namespace CartographeAutomatique.Tests;
 
-
 [MapTo(typeof(Point3))]
 [MapTo(typeof(Point2), Exhaustive = false)]
 public class Vector3
@@ -40,6 +39,17 @@ public class Line2
     public Point2 B { get; set; }
 }
 
+[MapTo(typeof(SongWriter))]
+public class Author
+{
+    [TargetMapping(typeof(SongWriter), TargetField = "FullName")]
+    public string Name { get; set; }
+}
+
+public class SongWriter
+{
+    public string FullName { get; set; }
+}
 
 public class SampleMapGeneratorTests
 {
@@ -105,16 +115,4 @@ public class SampleMapGeneratorTests
 
         Assert.Equal(author.Name, songWriter.FullName);
     }
-}
-
-[MapTo(typeof(SongWriter))]
-public class Author
-{
-    [TargetMapping(typeof(SongWriter), TargetField = "FullName")]
-    public string Name { get; set; }
-}
-
-public class SongWriter
-{
-    public string FullName { get; set; }
 }

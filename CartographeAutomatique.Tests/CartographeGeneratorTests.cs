@@ -23,7 +23,7 @@ public class CartographeGeneratorTests
     }
 
     [Fact]
-    public void GenerateNonExhausiveMapping()
+    public void GenerateNonExhaustiveMapping()
     {
         var assertion = new SourceGenerationAssertion(SourceFixtures.NonExhaustiveMapping, [
             new("Vector3ToPoint2", SourceFixtures.ExpectedGeneratedCodeNonExhaustive),
