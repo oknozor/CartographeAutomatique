@@ -21,7 +21,6 @@
 
     <ItemGroup>
         <ProjectReference Include="..\CartographeAutomatique\CartographeAutomatique.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>
-        <ProjectReference Include="..\CartographeAutomatique.Sample\CartographeAutomatique.Sample.csproj" />
         <ProjectReference Include="..\CartographeAutomatique\CartographeAutomatique.csproj"/>
     </ItemGroup>
 
