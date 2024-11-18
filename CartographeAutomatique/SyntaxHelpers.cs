@@ -27,11 +27,8 @@ public static class SyntaxHelpers
         };
     }
 
-    public static ITypeSymbol? GetPropertyTypeSymbol(this PropertyDeclarationSyntax propertyDeclaration, GeneratorSyntaxContext context)
-    {
-        var propertySymbol = context.SemanticModel.GetDeclaredSymbol(propertyDeclaration) as IPropertySymbol;
-        return propertySymbol?.Type;
-    }
+    public static ITypeSymbol? GetPropertyTypeSymbol(this TypeSyntax type, GeneratorSyntaxContext context)
+        => context.SemanticModel.GetTypeInfo(type).Type;
 
     public static ClassDeclarationSyntax? GetClassDeclarationForType(this ITypeSymbol targetTypeSymbol, GeneratorSyntaxContext context)
     {
@@ -56,5 +53,32 @@ public static class SyntaxHelpers
                         identifierNameSyntax.Identifier.Text == targetClassName)
             );
 
+    public static AttributeSyntax? GetMatchingTargetMappingAttribute(this ParameterSyntax parameter, string targetClassName) =>
+        parameter
+            .AttributeLists
+            .SelectMany(x => x.Attributes)
+            .Where(a => a.Name is IdentifierNameSyntax { Identifier.ValueText: "TargetMapping" })
+            .SingleOrDefault(x =>
+                x.ArgumentList != null && x.ArgumentList.Arguments
+                    .Any(arg =>
+                        arg.Expression is TypeOfExpressionSyntax { Type: IdentifierNameSyntax identifierNameSyntax } &&
+                        identifierNameSyntax.Identifier.Text == targetClassName)
+            );
 
+
+    public static TypeDeclarationSyntax? TypeDeclarationSyntaxFromSymbolInfo(this SymbolInfo targetSymbolInfo)
+    {
+        if (targetSymbolInfo.Symbol is not INamedTypeSymbol
+            {
+                DeclaringSyntaxReferences.Length: > 0
+            } targetNamedType) return null;
+
+        var node = targetNamedType.DeclaringSyntaxReferences[0].GetSyntax();
+        if (node is TypeDeclarationSyntax typeDeclarationSyntax)
+        {
+            return typeDeclarationSyntax;
+        }
+
+        return null;
+    }
 }

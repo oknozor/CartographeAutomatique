@@ -64,6 +64,23 @@ public class CartographeGeneratorTests
         CodeGenerationAssertion(assertion);
     }
 
+    [Fact]
+    public void GenerateRecordToClassMappingCode()
+    {
+        var assertion =
+            new SourceGenerationAssertion(SourceFixtures.RecordToClassMapping,
+                [new("CarToTruck", SourceFixtures.ExpectedSimpleRecordToClassMapping)]);
+        CodeGenerationAssertion(assertion);
+    }
+
+    [Fact]
+    public void GenerateClassToRecordMappingCode()
+    {
+        var assertion =
+            new SourceGenerationAssertion(SourceFixtures.ClassToRecordMapping,
+                [new("TruckToCar", SourceFixtures.ExpectedClassToRecord)]);
+        CodeGenerationAssertion(assertion);
+    }
 
     private void CodeGenerationAssertion(SourceGenerationAssertion assertion)
     {
