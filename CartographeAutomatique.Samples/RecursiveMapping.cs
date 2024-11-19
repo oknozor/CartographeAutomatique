@@ -1,5 +1,3 @@
-using CartographeAutomatique.Tests.Samples.NonExhaustiveMapping;
-using CartographeAutomatique.Tests.Samples.SimpleMapping;
 using Generators;
 using Xunit;
 

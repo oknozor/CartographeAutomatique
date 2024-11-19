@@ -5,7 +5,7 @@ namespace CartographeAutomatique.Tests.Samples.RecordToRecordMapping;
 
 
 [MapTo(typeof(HexColor))]
-public record Color([TargetMapping(typeof(HexColor), TargetField = "HexValue")] string Value);
+public record Color([TargetMapping(TargetType = typeof(HexColor), TargetField = "HexValue")] string Value);
 
 public record HexColor(string HexValue);
 

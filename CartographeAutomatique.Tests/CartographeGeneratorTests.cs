@@ -15,80 +15,46 @@ public class CartographeGeneratorTests
     [Fact]
     public void GenerateSimpleMapping()
     {
-        var assertion = new SourceGenerationAssertion(Fixtures.Vector3ClassText, [
-            new("Vector3ToPoint", Fixtures.ExpectedGeneratedCodeVector3),
-        ]);
-
-        CodeGenerationAssertion(assertion);
+        CodeGenerationAssertion(new ClassToClass().GetAssertion());
     }
 
     [Fact]
     public void GenerateNonExhaustiveMapping()
     {
-        var assertion = new SourceGenerationAssertion(Fixtures.NonExhaustiveMapping, [
-            new("Vector3ToPoint2", Fixtures.ExpectedGeneratedCodeNonExhaustive),
-        ]);
-
-        CodeGenerationAssertion(assertion);
+        CodeGenerationAssertion(new NonExhaustive().GetAssertion());
     }
 
     [Fact]
-    public void GenerateMultipleMappingOnSameClass()
-    {
-        var assertion = new SourceGenerationAssertion(Fixtures.MultipleMappingAttributes, [
-            new("Vector3ToPoint", Fixtures.ExpectedGeneratedCodeVector3),
-            new("Vector3ToPoint2", Fixtures.ExpectedGeneratedCodeNonExhaustive)
-        ]);
-
-        CodeGenerationAssertion(assertion);
-    }
+    public void GenerateMultipleMappingOnSameClass() => CodeGenerationAssertion(new MutlipleMapping().GetAssertion());
 
 
     [Fact]
-    public void GenerateRecursiveMappingCode()
-    {
-        var assertion = new SourceGenerationAssertion(Fixtures.RecursiveMappings, [
-            new("Line3ToLine2", Fixtures.RecursiveMappingsExpectedLineMapping),
-            new("Point3ToPoint2", Fixtures.RecursiveMappingsExpectedPointMapping)
-        ]);
-
-        CodeGenerationAssertion(assertion);
-    }
+    public void GenerateRecursiveMappingCode() => CodeGenerationAssertion(new Recursive().GetAssertion());
 
     [Fact]
-    public void GenerateFieldMappingCode()
-    {
-        var assertion =
-            new SourceGenerationAssertion(Fixtures.FieldMappings,
-                [new("AuthorToSongWriter", Fixtures.ExpectedFieldMappings)]);
-        CodeGenerationAssertion(assertion);
-    }
+    public void GenerateFieldMappingCode() => CodeGenerationAssertion(new FieldMapping().GetAssertion());
 
     [Fact]
-    public void GenerateRecordToClassMappingCode()
-    {
-        var assertion =
-            new SourceGenerationAssertion(Fixtures.RecordToClassMapping,
-                [new("CarToTruck", Fixtures.ExpectedSimpleRecordToClassMapping)]);
-        CodeGenerationAssertion(assertion);
-    }
+    public void GenerateRecordToClassMappingCode() => CodeGenerationAssertion(new RecordToClass().GetAssertion());
 
     [Fact]
-    public void GenerateClassToRecordMappingCode()
-    {
-        var assertion =
-            new SourceGenerationAssertion(Fixtures.ClassToRecordMapping,
-                [new("TruckToCar", Fixtures.ExpectedClassToRecord)]);
-        CodeGenerationAssertion(assertion);
-    }
+    public void GenerateClassToRecordMappingCode() => CodeGenerationAssertion(new ClassToRecord().GetAssertion());
+
     [Fact]
     public void GenerateRecordToRecordMappingCode()
+    {
+        CodeGenerationAssertion(new RecordToRecord().GetAssertion());
+    }
+
+    /*[Fact]
+    public void GenerateMultipleMappingsWithMutlipleTargetFields()
     {
         var assertion =
             new SourceGenerationAssertion(Fixtures.RecordToRecord,
                 [new("ColorToHexColor", Fixtures.ExpectedRecordToRecordMappings)]);
         CodeGenerationAssertion(assertion);
-    }
+    }*/
+
 
     private void CodeGenerationAssertion(SourceGenerationAssertion assertion)
     {

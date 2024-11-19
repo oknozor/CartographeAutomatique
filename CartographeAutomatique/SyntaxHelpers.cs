@@ -30,17 +30,6 @@ public static class SyntaxHelpers
     public static ITypeSymbol? GetPropertyTypeSymbol(this TypeSyntax type, GeneratorSyntaxContext context)
         => context.SemanticModel.GetTypeInfo(type).Type;
 
-    public static ClassDeclarationSyntax? GetClassDeclarationForType(this ITypeSymbol targetTypeSymbol, GeneratorSyntaxContext context)
-    {
-        if (context.Node is not ClassDeclarationSyntax classDeclaration) return null;
-        if (context.SemanticModel.GetDeclaredSymbol(classDeclaration) is ITypeSymbol declaredSymbol && SymbolEqualityComparer.Default.Equals(declaredSymbol, targetTypeSymbol))
-        {
-            return classDeclaration;
-        }
-
-        return null;
-    }
-
     public static AttributeSyntax? GetMatchingTargetMappingAttribute(this MemberDeclarationSyntax memberDeclarationSyntax, string targetClassName) =>
         memberDeclarationSyntax
             .AttributeLists

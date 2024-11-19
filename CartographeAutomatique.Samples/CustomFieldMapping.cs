@@ -6,8 +6,8 @@ namespace CartographeAutomatique.Tests.Samples.CustomFieldMapping;
 [MapTo(typeof(SongWriter))]
 public class Author
 {
-    [TargetMapping(typeof(SongWriter), TargetField = "FullName")]
-    public string Name { get; set; }
+    [TargetMapping(TargetType = typeof(SongWriter), TargetField = "FullName")]
+    public string Name { get; init; }
 }
 
 public class SongWriter

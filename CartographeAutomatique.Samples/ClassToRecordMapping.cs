@@ -1,5 +1,4 @@
 using Generators;
-using Xunit;
 
 namespace CartographeAutomatique.Tests.Samples.ClassToRecordMapping;
 
