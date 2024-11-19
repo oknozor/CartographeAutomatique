@@ -15,8 +15,8 @@ public class CartographeGeneratorTests
     [Fact]
     public void GenerateSimpleMapping()
     {
-        var assertion = new SourceGenerationAssertion(SourceFixtures.Vector3ClassText, [
-            new("Vector3ToPoint", SourceFixtures.ExpectedGeneratedCodeVector3),
+        var assertion = new SourceGenerationAssertion(Fixtures.Vector3ClassText, [
+            new("Vector3ToPoint", Fixtures.ExpectedGeneratedCodeVector3),
         ]);
 
         CodeGenerationAssertion(assertion);
@@ -25,8 +25,8 @@ public class CartographeGeneratorTests
     [Fact]
     public void GenerateNonExhaustiveMapping()
     {
-        var assertion = new SourceGenerationAssertion(SourceFixtures.NonExhaustiveMapping, [
-            new("Vector3ToPoint2", SourceFixtures.ExpectedGeneratedCodeNonExhaustive),
+        var assertion = new SourceGenerationAssertion(Fixtures.NonExhaustiveMapping, [
+            new("Vector3ToPoint2", Fixtures.ExpectedGeneratedCodeNonExhaustive),
         ]);
 
         CodeGenerationAssertion(assertion);
@@ -35,9 +35,9 @@ public class CartographeGeneratorTests
     [Fact]
     public void GenerateMultipleMappingOnSameClass()
     {
-        var assertion = new SourceGenerationAssertion(SourceFixtures.MultipleMappingAttributes, [
-            new("Vector3ToPoint", SourceFixtures.ExpectedGeneratedCodeVector3),
-            new("Vector3ToPoint2", SourceFixtures.ExpectedGeneratedCodeNonExhaustive)
+        var assertion = new SourceGenerationAssertion(Fixtures.MultipleMappingAttributes, [
+            new("Vector3ToPoint", Fixtures.ExpectedGeneratedCodeVector3),
+            new("Vector3ToPoint2", Fixtures.ExpectedGeneratedCodeNonExhaustive)
         ]);
 
         CodeGenerationAssertion(assertion);
@@ -47,9 +47,9 @@ public class CartographeGeneratorTests
     [Fact]
     public void GenerateRecursiveMappingCode()
     {
-        var assertion = new SourceGenerationAssertion(SourceFixtures.RecursiveMappings, [
-            new("Line3ToLine2", SourceFixtures.RecursiveMappingsExpectedLineMapping),
-            new("Point3ToPoint2", SourceFixtures.RecursiveMappingsExpectedPointMapping)
+        var assertion = new SourceGenerationAssertion(Fixtures.RecursiveMappings, [
+            new("Line3ToLine2", Fixtures.RecursiveMappingsExpectedLineMapping),
+            new("Point3ToPoint2", Fixtures.RecursiveMappingsExpectedPointMapping)
         ]);
 
         CodeGenerationAssertion(assertion);
@@ -59,8 +59,8 @@ public class CartographeGeneratorTests
     public void GenerateFieldMappingCode()
     {
         var assertion =
-            new SourceGenerationAssertion(SourceFixtures.FieldMappings,
-                [new("AuthorToSongWriter", SourceFixtures.ExpectedFieldMappings)]);
+            new SourceGenerationAssertion(Fixtures.FieldMappings,
+                [new("AuthorToSongWriter", Fixtures.ExpectedFieldMappings)]);
         CodeGenerationAssertion(assertion);
     }
 
@@ -68,8 +68,8 @@ public class CartographeGeneratorTests
     public void GenerateRecordToClassMappingCode()
     {
         var assertion =
-            new SourceGenerationAssertion(SourceFixtures.RecordToClassMapping,
-                [new("CarToTruck", SourceFixtures.ExpectedSimpleRecordToClassMapping)]);
+            new SourceGenerationAssertion(Fixtures.RecordToClassMapping,
+                [new("CarToTruck", Fixtures.ExpectedSimpleRecordToClassMapping)]);
         CodeGenerationAssertion(assertion);
     }
 
@@ -77,8 +77,16 @@ public class CartographeGeneratorTests
     public void GenerateClassToRecordMappingCode()
     {
         var assertion =
-            new SourceGenerationAssertion(SourceFixtures.ClassToRecordMapping,
-                [new("TruckToCar", SourceFixtures.ExpectedClassToRecord)]);
+            new SourceGenerationAssertion(Fixtures.ClassToRecordMapping,
+                [new("TruckToCar", Fixtures.ExpectedClassToRecord)]);
+        CodeGenerationAssertion(assertion);
+    }
+    [Fact]
+    public void GenerateRecordToRecordMappingCode()
+    {
+        var assertion =
+            new SourceGenerationAssertion(Fixtures.RecordToRecord,
+                [new("ColorToHexColor", Fixtures.ExpectedRecordToRecordMappings)]);
         CodeGenerationAssertion(assertion);
     }
 

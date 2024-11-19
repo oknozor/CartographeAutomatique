@@ -10,7 +10,7 @@ public class Truck
 {
     public string Color { get; set; }
     public string Brand { get; set; }
-};
+}
 
 public class RecordToClassMapping
 {

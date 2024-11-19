@@ -19,16 +19,7 @@ internal class ClassMapping(
     MappingStrategyInternal strategy,
     GeneratorSyntaxContext context)
 {
-    public string GenerateMapping() =>
-        strategy switch
-        {
-            MappingStrategyInternal.Constructor => GenerateSourceUsingSetters(),
-            MappingStrategyInternal.Setter => GenerateSourceUsingSetters(),
-            _ => throw new ArgumentOutOfRangeException(nameof(strategy), strategy, null)
-        };
-
-
-    private string GenerateSourceUsingSetters()
+    public string GenerateMapping()
     {
         var assignations = GenerateAssignation();
         var sourceNameSpace = SourceNameSpace()!;
