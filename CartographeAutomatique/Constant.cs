@@ -4,7 +4,6 @@ internal static class Constant
 {
     internal const string Namespace = "Generators";
     internal const string AttributeName = "MapToAttribute";
-
     internal const string AttributeSourceCode =
         //language=csharp
         $$"""

@@ -13,21 +13,14 @@ public record SourceGenerationOutput(string GeneratedFileName, string ExpectedSo
 public class CartographeGeneratorTests
 {
     [Fact]
-    public void GenerateSimpleMapping()
-    {
-        CodeGenerationAssertion(new ClassToClass().GetAssertion());
-    }
+    public void GenerateSimpleMapping() => CodeGenerationAssertion(new ClassToClass().GetAssertion());
 
     [Fact]
-    public void GenerateNonExhaustiveMapping()
-    {
-        CodeGenerationAssertion(new NonExhaustive().GetAssertion());
-    }
+    public void GenerateNonExhaustiveMapping() => CodeGenerationAssertion(new NonExhaustive().GetAssertion());
 
     [Fact]
     public void GenerateMultipleMappingOnSameClass() => CodeGenerationAssertion(new MutlipleMapping().GetAssertion());
-
-
+    
     [Fact]
     public void GenerateRecursiveMappingCode() => CodeGenerationAssertion(new Recursive().GetAssertion());
 
