@@ -35,26 +35,19 @@ public class CartographeGeneratorTests
     public void GenerateFieldMappingCode() => CodeGenerationAssertion(new FieldMapping().GetAssertion());
 
     [Fact]
+    public void GenerateImplicitFieldMappingCode() => CodeGenerationAssertion(new FieldMappingImplicit().GetAssertion());
+
+    [Fact]
     public void GenerateRecordToClassMappingCode() => CodeGenerationAssertion(new RecordToClass().GetAssertion());
 
     [Fact]
     public void GenerateClassToRecordMappingCode() => CodeGenerationAssertion(new ClassToRecord().GetAssertion());
 
     [Fact]
-    public void GenerateRecordToRecordMappingCode()
-    {
-        CodeGenerationAssertion(new RecordToRecord().GetAssertion());
-    }
+    public void GenerateRecordToRecordMappingCode() => CodeGenerationAssertion(new RecordToRecord().GetAssertion());
 
-    /*[Fact]
-    public void GenerateMultipleMappingsWithMutlipleTargetFields()
-    {
-        var assertion =
-            new SourceGenerationAssertion(Fixtures.RecordToRecord,
-                [new("ColorToHexColor", Fixtures.ExpectedRecordToRecordMappings)]);
-        CodeGenerationAssertion(assertion);
-    }*/
-
+    [Fact]
+    public void GenerateMultipleFieldMappings() => CodeGenerationAssertion(new MultipleFieldMapping().GetAssertion());
 
     private void CodeGenerationAssertion(SourceGenerationAssertion assertion)
     {

@@ -30,29 +30,55 @@ public static class SyntaxHelpers
     public static ITypeSymbol? GetPropertyTypeSymbol(this TypeSyntax type, GeneratorSyntaxContext context)
         => context.SemanticModel.GetTypeInfo(type).Type;
 
-    public static AttributeSyntax? GetMatchingTargetMappingAttribute(this MemberDeclarationSyntax memberDeclarationSyntax, string targetClassName) =>
-        memberDeclarationSyntax
+    public static AttributeSyntax? GetMatchingTargetMappingAttribute(this MemberDeclarationSyntax memberDeclarationSyntax, string targetClassName)
+    {
+        var targetMappingCandidates = memberDeclarationSyntax
             .AttributeLists
             .SelectMany(x => x.Attributes)
             .Where(a => a.Name is IdentifierNameSyntax { Identifier.ValueText: "TargetMapping" })
-            .SingleOrDefault(x =>
-                x.ArgumentList != null && x.ArgumentList.Arguments
-                    .Any(arg =>
-                        arg.Expression is TypeOfExpressionSyntax { Type: IdentifierNameSyntax identifierNameSyntax } &&
-                        identifierNameSyntax.Identifier.Text == targetClassName)
-            );
+            .ToList();
 
-    public static AttributeSyntax? GetMatchingTargetMappingAttribute(this ParameterSyntax parameter, string targetClassName) =>
-        parameter
-            .AttributeLists
-            .SelectMany(x => x.Attributes)
-            .Where(a => a.Name is IdentifierNameSyntax { Identifier.ValueText: "TargetMapping" })
+        if (targetMappingCandidates.Count == 0) return null;
+
+        if (targetMappingCandidates.Count == 1)
+        {
+            return targetMappingCandidates.FirstOrDefault(x => x.ArgumentList != null);
+        }
+
+        return targetMappingCandidates
             .SingleOrDefault(x =>
                 x.ArgumentList != null && x.ArgumentList.Arguments
                     .Any(arg =>
                         arg.Expression is TypeOfExpressionSyntax { Type: IdentifierNameSyntax identifierNameSyntax } &&
                         identifierNameSyntax.Identifier.Text == targetClassName)
             );
+    }
+
+    public static AttributeSyntax? GetMatchingTargetMappingAttribute(this ParameterSyntax parameter, string targetClassName)
+    {
+        var targetMappingCandidates = parameter
+            .AttributeLists
+            .SelectMany(x => x.Attributes)
+            .Where(a => a.Name is IdentifierNameSyntax { Identifier.ValueText: "TargetMapping" })
+            .ToList();
+
+        if (targetMappingCandidates.Count == 0) return null;
+
+        if (targetMappingCandidates.Count == 1)
+        {
+            return targetMappingCandidates.FirstOrDefault(x => x.ArgumentList != null);
+        }
+
+        return targetMappingCandidates
+            .SingleOrDefault(x => x.ArgumentList != null && x.ArgumentList.Arguments
+                .Any(arg =>
+                    arg.Expression is TypeOfExpressionSyntax
+                    {
+                        Type: IdentifierNameSyntax identifierNameSyntax
+                    } &&
+                    identifierNameSyntax.Identifier.Text == targetClassName)
+            );
+    }
 
 
     public static TypeDeclarationSyntax? TypeDeclarationSyntaxFromSymbolInfo(this SymbolInfo targetSymbolInfo)

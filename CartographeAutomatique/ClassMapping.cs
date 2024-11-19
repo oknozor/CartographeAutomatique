@@ -75,7 +75,7 @@ internal class ClassMapping(
                 }
             }
 
-            var targetProp = GetMatchingTargetProp(prop, targetFieldName);
+            var targetProp = GetMatchingTargetProp(targetFieldName);
 
 
             if (targetProp is null)
@@ -105,7 +105,7 @@ internal class ClassMapping(
         return assignations;
     }
 
-    private PropertyOrParameter? GetMatchingTargetProp(PropertyOrParameter prop, string targetFieldName) =>
+    private PropertyOrParameter? GetMatchingTargetProp(string targetFieldName) =>
         targetType switch
         {
             ClassDeclarationSyntax classDeclaration => classDeclaration.Members
@@ -160,6 +160,4 @@ internal class ClassMapping(
 
         return sourceClassSymbol.ContainingNamespace.ToDisplayString();
     }
-
-    private ClassDeclarationSyntax TargetClass() => (targetType as ClassDeclarationSyntax)!;
 }
