@@ -21,20 +21,26 @@ internal class ClassMapping(
 {
     public string GenerateMapping()
     {
-        var assignations = GenerateAssignation();
+        var activeStrategy = TargetIsRecord() switch
+        {
+            true => MappingStrategyInternal.Constructor,
+            _ => strategy
+        };
+
+        var assignations = GenerateAssignation(activeStrategy);
         var sourceNameSpace = SourceNameSpace()!;
         var targetNameSpace = TargetNameSpace()!;
 
-        var joinedAssignation = targetType switch
+        var joinedAssignation = activeStrategy switch
         {
-            ClassDeclarationSyntax => string.Join(",\n\t\t\t", assignations),
-            RecordDeclarationSyntax => string.Join(",", assignations),
+            MappingStrategyInternal.Setter => string.Join(",\n\t\t\t", assignations),
+            MappingStrategyInternal.Constructor => string.Join(",", assignations),
         };
 
-        var instantiation = targetType switch
+        var instantiation = activeStrategy switch
         {
-            ClassDeclarationSyntax => $"\tnew()\n\t\t{{\n\t\t\t{joinedAssignation}\n\t\t}};",
-            RecordDeclarationSyntax => $"\tnew({joinedAssignation});",
+            MappingStrategyInternal.Setter => $"\tnew()\n\t\t{{\n\t\t\t{joinedAssignation}\n\t\t}};",
+            MappingStrategyInternal.Constructor => $"\tnew({joinedAssignation});",
         };
 
         return $$"""
@@ -53,7 +59,7 @@ internal class ClassMapping(
     public string TargetClassName => targetType.Identifier.Text;
 
 
-    private List<string> GenerateAssignation()
+    private List<string> GenerateAssignation(MappingStrategyInternal activeStrategy)
     {
         List<string> assignations = [];
 
@@ -88,15 +94,15 @@ internal class ClassMapping(
 
             var propertyTypeSymbol = targetProp.Type.GetPropertyTypeSymbol(context);
 
-            var assignation = targetType switch
+            var assignation = activeStrategy switch
             {
-                RecordDeclarationSyntax => !propertyTypeSymbol!.IsPrimitiveType()
+                MappingStrategyInternal.Constructor => !propertyTypeSymbol!.IsPrimitiveType()
                     ? $"""{targetProp.Identifier}: source.{prop.Identifier}.MapTo{propertyTypeSymbol!.Name}()"""
                     : $"""{targetProp.Identifier}: source.{prop.Identifier}""",
-                ClassDeclarationSyntax => !propertyTypeSymbol!.IsPrimitiveType()
+                MappingStrategyInternal.Setter => !propertyTypeSymbol!.IsPrimitiveType()
                     ? $"""{targetProp.Identifier} = source.{prop.Identifier}.MapTo{propertyTypeSymbol!.Name}()"""
                     : $"""{targetProp.Identifier} = source.{prop.Identifier}""",
-                _ => throw new NotImplementedException(),
+                _ => throw new ArgumentOutOfRangeException(),
             };
 
             assignations.Add(assignation);
@@ -160,4 +166,6 @@ internal class ClassMapping(
 
         return sourceClassSymbol.ContainingNamespace.ToDisplayString();
     }
+
+    private bool TargetIsRecord() => targetType is RecordDeclarationSyntax;
 }

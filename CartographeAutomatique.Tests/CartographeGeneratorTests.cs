@@ -20,7 +20,7 @@ public class CartographeGeneratorTests
 
     [Fact]
     public void GenerateMultipleMappingOnSameClass() => CodeGenerationAssertion(new MutlipleMapping().GetAssertion());
-    
+
     [Fact]
     public void GenerateRecursiveMappingCode() => CodeGenerationAssertion(new Recursive().GetAssertion());
 

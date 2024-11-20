@@ -9,7 +9,7 @@ public class ClassToRecord : IFixture
 
         internal record Car(string Color, string Brand);
 
-        [MapTo(typeof(Car), MappingStrategy = MappingStrategy.Constructor)]
+        [MapTo(typeof(Car)]
         internal class Truck
         {
             public string Color { get; set; }
