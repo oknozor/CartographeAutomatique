@@ -13,18 +13,15 @@ public class ClassToClass : IFixture
         
             public float X { get; set; }
             public float Y { get; set; }
-        
             public float Z { get; set; }
-            }
+        }
 
         public partial class Point
         {
-        
             public float X { get; set; }
             public float Y { get; set; }
-        
             public float Z { get; set; }
-            };
+        };
         """;
 
     private const string Expected =

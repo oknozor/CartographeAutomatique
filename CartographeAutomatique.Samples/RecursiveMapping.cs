@@ -36,10 +36,10 @@ public class RecursiveMapping
     [Fact]
     void Should_generate_recursive_mappings()
     {
-        var line3 = new Line3()
+        var line3 = new Line3
         {
-            A = new Point3() { X = 1, Y = 1, Z = 3 },
-            B = new Point3() { X = 5, Y = 4, Z = 6 },
+            A = new Point3 { X = 1, Y = 1, Z = 3 },
+            B = new Point3 { X = 5, Y = 4, Z = 6 },
         };
 
         Line2 line = line3.MapToLine2();

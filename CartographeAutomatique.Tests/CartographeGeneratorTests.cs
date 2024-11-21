@@ -42,6 +42,10 @@ public class CartographeGeneratorTests
     [Fact]
     public void GenerateMultipleFieldMappings() => CodeGenerationAssertion(new MultipleFieldMapping().GetAssertion());
 
+    [Fact]
+    public void GenerateConstructorClassMapping() => CodeGenerationAssertion(new ConstructorClassToClass().GetAssertion());
+
+
     private void CodeGenerationAssertion(SourceGenerationAssertion assertion)
     {
         var generator = new CartographeGenerator();

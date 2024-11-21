@@ -12,7 +12,7 @@ public enum MappingStrategyInternal
     Setter
 }
 
-internal class ClassMapping(
+internal class TypeMapping(
     TypeDeclarationSyntax sourceType,
     TypeDeclarationSyntax targetType,
     bool exhaustive,
@@ -81,7 +81,7 @@ internal class ClassMapping(
                 }
             }
 
-            var targetProp = GetMatchingTargetProp(targetFieldName);
+            var targetProp = GetMatchingTargetProp(targetFieldName, activeStrategy);
 
 
             if (targetProp is null)
@@ -111,8 +111,24 @@ internal class ClassMapping(
         return assignations;
     }
 
-    private PropertyOrParameter? GetMatchingTargetProp(string targetFieldName) =>
-        targetType switch
+    private PropertyOrParameter? GetMatchingTargetProp(string targetFieldName, MappingStrategyInternal activeStrategy)
+    {
+        if (targetType is ClassDeclarationSyntax targetClass && activeStrategy == MappingStrategyInternal.Constructor)
+        {
+            var constructor = targetClass.Members
+                .OfType<ConstructorDeclarationSyntax>()
+                .OrderByDescending(c => c.ParameterList.Parameters.Count) // Sort by parameter count
+                .FirstOrDefault();
+
+            return constructor?.ParameterList?
+                .Parameters
+                .Select(targetParameter =>
+                    new PropertyOrParameter(targetParameter.Type, targetParameter.Identifier.Text))
+                .SingleOrDefault(targetParameter =>
+                    targetParameter.Identifier == targetFieldName);
+        }
+
+        return targetType switch
         {
             ClassDeclarationSyntax classDeclaration => classDeclaration.Members
                 .OfType<PropertyDeclarationSyntax>()
@@ -129,6 +145,7 @@ internal class ClassMapping(
                     targetParameter.Identifier == targetFieldName),
             _ => throw new NotImplementedException()
         };
+    }
 
     private IEnumerable<PropertyOrParameter>? GetSourceProperties() =>
         sourceType switch

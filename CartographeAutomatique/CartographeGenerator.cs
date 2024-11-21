@@ -31,7 +31,7 @@ public class CartographeGenerator : IIncrementalGenerator
             (ctx, t) => GenerateCode(ctx, t.Left, t.Right));
     }
 
-    private static List<ClassMapping> GetClassDeclarationForSourceGen(GeneratorSyntaxContext context)
+    private static List<TypeMapping> GetClassDeclarationForSourceGen(GeneratorSyntaxContext context)
     {
         return context.Node switch
         {
@@ -41,10 +41,10 @@ public class CartographeGenerator : IIncrementalGenerator
         };
     }
 
-    private static List<ClassMapping> PopulateRecordMapping(GeneratorSyntaxContext context,
+    private static List<TypeMapping> PopulateRecordMapping(GeneratorSyntaxContext context,
         RecordDeclarationSyntax recordDeclarationSyntax)
     {
-        var classMappings = new List<ClassMapping>();
+        var classMappings = new List<TypeMapping>();
 
         foreach (var attributeListSyntax in recordDeclarationSyntax.AttributeLists)
             foreach (var arguments in
@@ -79,7 +79,7 @@ public class CartographeGenerator : IIncrementalGenerator
                 if (targetTypeSyntax is null) continue;
 
                 classMappings.Add(
-                    new ClassMapping(
+                    new TypeMapping(
                         recordDeclarationSyntax,
                         targetTypeSyntax,
                         exhaustive,
@@ -92,10 +92,10 @@ public class CartographeGenerator : IIncrementalGenerator
         return classMappings;
     }
 
-    private static List<ClassMapping> PopulateClassMapping(GeneratorSyntaxContext context,
+    private static List<TypeMapping> PopulateClassMapping(GeneratorSyntaxContext context,
         ClassDeclarationSyntax classDeclarationSyntax)
     {
-        var classMappings = new List<ClassMapping>();
+        var classMappings = new List<TypeMapping>();
 
         foreach (var attributeListSyntax in classDeclarationSyntax.AttributeLists)
             foreach (var arguments in
@@ -130,7 +130,7 @@ public class CartographeGenerator : IIncrementalGenerator
                 if (targetTypeSyntax is null) continue;
 
                 classMappings.Add(
-                    new ClassMapping(
+                    new TypeMapping(
                         classDeclarationSyntax,
                         targetTypeSyntax,
                         exhaustive,
@@ -144,7 +144,7 @@ public class CartographeGenerator : IIncrementalGenerator
     }
 
     private void GenerateCode(SourceProductionContext context, Compilation compilation,
-        ImmutableArray<List<ClassMapping>> classDeclarations)
+        ImmutableArray<List<TypeMapping>> classDeclarations)
     {
         var classMappings = classDeclarations.SelectMany(t => t)
             .ToList();
