@@ -11,7 +11,7 @@ public class FieldMappingImplicit
             [MapTo(typeof(SongWriter))]
             class Author
             {
-                [TargetMapping(TargetField = "FullName")]
+                [Mapping(TargetField = "FullName")]
                 string Name { get; set; }
             }
         

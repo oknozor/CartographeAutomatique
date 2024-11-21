@@ -5,8 +5,8 @@ namespace CartographeAutomatique.Samples;
 [MapTo(typeof(Truck))]
 [MapTo(typeof(Bike))]
 public record Vehicle(
-    [TargetMapping(TargetType = typeof(Truck), TargetField = "TruckColor")]
-    [TargetMapping(TargetType = typeof(Bike), TargetField = "BikeColor")]
+    [Mapping(TargetType = typeof(Truck), TargetField = "TruckColor")]
+    [Mapping(TargetType = typeof(Bike), TargetField = "BikeColor")]
     string Color,
     string Brand
 );

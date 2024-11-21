@@ -8,7 +8,7 @@ public class RecordToRecord : IFixture
         namespace TestNamespace;
 
         [MapTo(typeof(HexColor))]
-        public record Color([TargetMapping(TargetType = typeof(HexColor), TargetField = "HexValue")] string Value);
+        public record Color([Mapping(TargetType = typeof(HexColor), TargetField = "HexValue")] string Value);
 
         public record HexColor(string HexValue);
         """;

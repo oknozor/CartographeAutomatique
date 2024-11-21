@@ -153,7 +153,7 @@ internal class TypeMapping(
             ClassDeclarationSyntax sourceClass => sourceClass.Members
                 .OfType<PropertyDeclarationSyntax>()
                 .Select(member =>
-                    (Member: member, Attribute: member.GetMatchingTargetMappingAttribute(TargetClassName)))
+                    (Member: member, Attribute: member.GetMatchingMappingAttribute(TargetClassName)))
                 .Select(type =>
                     new PropertyOrParameter(type.Member.Type, type.Member.Identifier.Text, type.Attribute)),
 
@@ -162,7 +162,7 @@ internal class TypeMapping(
                 .Parameters
                 .ToList()
                 .Select(parameter => (Parameter: parameter,
-                    Attribute: parameter.GetMatchingTargetMappingAttribute(TargetClassName)))
+                    Attribute: parameter.GetMatchingMappingAttribute(TargetClassName)))
                 .Select(type =>
                     new PropertyOrParameter(type.Parameter.Type, type.Parameter.Identifier.Text, type.Attribute)),
             _ => throw new ArgumentOutOfRangeException(nameof(sourceType), sourceType, null)

@@ -29,9 +29,9 @@ internal static class Constant
               }
           
               [System.AttributeUsage(System.AttributeTargets.Property | System.AttributeTargets.Parameter, AllowMultiple = true)]
-              public class TargetMappingAttribute : System.Attribute
+              public class MappingAttribute : System.Attribute
               {
-                  public TargetMappingAttribute() {}
+                  public MappingAttribute() {}
                   public string TargetField { get; set;} = "";
                   public System.Type? TargetType { get; set;} = null;
               }

@@ -11,7 +11,7 @@ public class FieldMapping : IFixture
             [MapTo(typeof(SongWriter))]
             class Author
             {
-                [TargetMapping(TargetType = typeof(SongWriter), TargetField = "FullName")]
+                [Mapping(TargetType = typeof(SongWriter), TargetField = "FullName")]
                 string Name { get; set; }
             }
         

@@ -10,8 +10,8 @@ public class MultipleFieldMapping : IFixture
         [MapTo(typeof(Truck))]
         [MapTo(typeof(Bike))]
         internal record Vehicle(
-            [TargetMapping(TargetType = typeof(Truck), TargetField = "TruckColor")]
-            [TargetMapping(TargetType = typeof(Bike), TargetField = "BikeColor")]
+            [Mapping(TargetType = typeof(Truck), TargetField = "TruckColor")]
+            [Mapping(TargetType = typeof(Bike), TargetField = "BikeColor")]
             string Color, 
             string Brand
         );

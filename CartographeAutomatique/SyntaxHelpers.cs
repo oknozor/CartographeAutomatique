@@ -30,12 +30,12 @@ public static class SyntaxHelpers
     public static ITypeSymbol? GetPropertyTypeSymbol(this TypeSyntax type, GeneratorSyntaxContext context)
         => context.SemanticModel.GetTypeInfo(type).Type;
 
-    public static AttributeSyntax? GetMatchingTargetMappingAttribute(this MemberDeclarationSyntax memberDeclarationSyntax, string targetClassName)
+    public static AttributeSyntax? GetMatchingMappingAttribute(this MemberDeclarationSyntax memberDeclarationSyntax, string targetClassName)
     {
         var targetMappingCandidates = memberDeclarationSyntax
             .AttributeLists
             .SelectMany(x => x.Attributes)
-            .Where(a => a.Name is IdentifierNameSyntax { Identifier.ValueText: "TargetMapping" })
+            .Where(a => a.Name is IdentifierNameSyntax { Identifier.ValueText: "Mapping" })
             .ToList();
 
         if (targetMappingCandidates.Count == 0) return null;
@@ -54,12 +54,12 @@ public static class SyntaxHelpers
             );
     }
 
-    public static AttributeSyntax? GetMatchingTargetMappingAttribute(this ParameterSyntax parameter, string targetClassName)
+    public static AttributeSyntax? GetMatchingMappingAttribute(this ParameterSyntax parameter, string targetClassName)
     {
         var targetMappingCandidates = parameter
             .AttributeLists
             .SelectMany(x => x.Attributes)
-            .Where(a => a.Name is IdentifierNameSyntax { Identifier.ValueText: "TargetMapping" })
+            .Where(a => a.Name is IdentifierNameSyntax { Identifier.ValueText: "Mapping" })
             .ToList();
 
         if (targetMappingCandidates.Count == 0) return null;
