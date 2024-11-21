@@ -27,6 +27,23 @@ internal static class Constant
                   public bool Exhaustive { get; set; }
                   public MappingStrategy MappingStrategy  { get; set; }
               }
+              
+              [System.AttributeUsage(System.AttributeTargets.Class, AllowMultiple = true)]
+              public class MapFromAttribute : System.Attribute
+              {
+                  public MapFromAttribute(System.Type sourceClassName, 
+                      bool Exhaustive = true, 
+                      MappingStrategy MappingStrategy = MappingStrategy.Setter)
+                  {
+                      SourceClassName = sourceClassName;
+                      this.Exhaustive = Exhaustive;
+                      this.MappingStrategy = MappingStrategy;
+                  }
+          
+                  public System.Type SourceClassName { get; }
+                  public bool Exhaustive { get; set; }
+                  public MappingStrategy MappingStrategy  { get; set; }
+              }
           
               [System.AttributeUsage(System.AttributeTargets.Property | System.AttributeTargets.Parameter, AllowMultiple = true)]
               public class MappingAttribute : System.Attribute

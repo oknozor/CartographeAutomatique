@@ -67,9 +67,9 @@ internal class TypeMapping(
 
         if (sourceProperties == null) return assignations;
 
-        foreach (var prop in sourceProperties)
+        foreach (var sourceProp in sourceProperties)
         {
-            var customMethod = prop.WithMethod();
+            var customMethod = sourceProp.WithMethod();
             string? methodName = null;
 
             if (customMethod != null)
@@ -81,8 +81,8 @@ internal class TypeMapping(
                 }
             }
 
-            var targetField = prop.TargetField();
-            var targetFieldName = prop.Identifier;
+            var targetField = sourceProp.TargetField();
+            var targetFieldName = sourceProp.Identifier;
 
             if (targetField != null)
             {
@@ -104,20 +104,31 @@ internal class TypeMapping(
                 throw new Exception("invalid mapping");
             }
 
-            var propertyTypeSymbol = targetProp.Type.GetPropertyTypeSymbol(context);
 
+            var targetType = targetProp.Type.GetPropertyTypeSymbol(context);
+            var sourceType = sourceProp.Type.GetPropertyTypeSymbol(context);
+
+            string? implicitConversion = null;
+            if (customMethod is null)
+            {
+                implicitConversion = GetImplicitConversion(targetType, sourceType);
+            }
             var assignation = activeStrategy switch
             {
+                MappingStrategyInternal.Constructor when implicitConversion is not null =>
+                    $"""{targetProp.Identifier}: {implicitConversion}(source.{sourceProp.Identifier})""",
                 MappingStrategyInternal.Constructor when methodName is not null =>
-                    $"""{targetProp.Identifier}: {methodName}(source.{prop.Identifier})""",
+                    $"""{targetProp.Identifier}: {methodName}(source.{sourceProp.Identifier})""",
                 MappingStrategyInternal.Setter when methodName is not null =>
-                    $"""{targetProp.Identifier} = {methodName}(source.{prop.Identifier})""",
-                MappingStrategyInternal.Constructor => !propertyTypeSymbol!.IsPrimitiveType()
-                    ? $"""{targetProp.Identifier}: source.{prop.Identifier}.MapTo{propertyTypeSymbol!.Name}()"""
-                    : $"""{targetProp.Identifier}: source.{prop.Identifier}""",
-                MappingStrategyInternal.Setter => !propertyTypeSymbol!.IsPrimitiveType()
-                    ? $"""{targetProp.Identifier} = source.{prop.Identifier}.MapTo{propertyTypeSymbol!.Name}()"""
-                    : $"""{targetProp.Identifier} = source.{prop.Identifier}""",
+                    $"""{targetProp.Identifier} = {methodName}(source.{sourceProp.Identifier})""",
+                MappingStrategyInternal.Setter when implicitConversion is not null =>
+                    $"""{targetProp.Identifier} = {implicitConversion}(source.{sourceProp.Identifier})""",
+                MappingStrategyInternal.Constructor => !targetType!.IsPrimitiveType()
+                    ? $"""{targetProp.Identifier}: source.{sourceProp.Identifier}.MapTo{targetType!.Name}()"""
+                    : $"""{targetProp.Identifier}: source.{sourceProp.Identifier}""",
+                MappingStrategyInternal.Setter => !targetType!.IsPrimitiveType()
+                    ? $"""{targetProp.Identifier} = source.{sourceProp.Identifier}.MapTo{targetType!.Name}()"""
+                    : $"""{targetProp.Identifier} = source.{sourceProp.Identifier}""",
                 _ => throw new ArgumentOutOfRangeException(),
             };
 
@@ -125,6 +136,38 @@ internal class TypeMapping(
         }
 
         return assignations;
+    }
+
+    private static string? GetImplicitConversion(ITypeSymbol? targetType, ITypeSymbol? sourceType)
+    {
+
+        // Handle conversion for special type (no clue if int, float, double etc will appear here)
+        var implicitMapping = (targetType?.SpecialType, sourceType?.SpecialType) switch
+        {
+            (SpecialType.System_String, SpecialType.System_Int16) => "Int16.Parse",
+            (SpecialType.System_String, SpecialType.System_Int32) => "Int32.Parse",
+            (SpecialType.System_String, SpecialType.System_Int64) => "Int64.Parse",
+            (SpecialType.System_String, SpecialType.System_UInt16) => "Int16.Parse",
+            (SpecialType.System_String, SpecialType.System_UInt32) => "UInt32.Parse",
+            (SpecialType.System_String, SpecialType.System_UInt64) => "UInt64.Parse",
+            // Todo: to drive code generation such as `mySouceEnumVariant.ToString()`
+            //      we need a object dedicated to hold the method call generation:
+            //      { method: string, call: static_member_access | instance_invocation }
+            //      enum -> string (instance_invocation)
+            //      int -> string (static_member_access via int.Parse)
+            (SpecialType.System_Enum, _) => "ToString()",
+            _ => null
+            // If no special type were found fallback to name comparison 
+            // The example below is not working as we probably need to find a way
+            // To extract Generic parameter for collections (or pass the generic parameter in this method call).
+            // This needs further exploration in the ITypeSymbol public API.
+        } ?? (targetType?.Name, sourceType?.Name) switch
+        {
+            ("List<MyType>", "MyType[]") => $"ToString()",
+            _ => null
+        };
+
+        return implicitMapping;
     }
 
     private PropertyOrParameter? GetMatchingTargetProp(string targetFieldName, MappingStrategyInternal activeStrategy)
