@@ -69,6 +69,18 @@ internal class TypeMapping(
 
         foreach (var prop in sourceProperties)
         {
+            var customMethod = prop.WithMethod();
+            string? methodName = null;
+
+            if (customMethod != null)
+            {
+                var constantValue = context.SemanticModel.GetConstantValue(customMethod.Expression);
+                if (constantValue is { HasValue: true, Value: string methodNameValue })
+                {
+                    methodName = methodNameValue;
+                }
+            }
+
             var targetField = prop.TargetField();
             var targetFieldName = prop.Identifier;
 
@@ -96,6 +108,10 @@ internal class TypeMapping(
 
             var assignation = activeStrategy switch
             {
+                MappingStrategyInternal.Constructor when methodName is not null =>
+                    $"""{targetProp.Identifier}: {methodName}(source.{prop.Identifier})""",
+                MappingStrategyInternal.Setter when methodName is not null =>
+                    $"""{targetProp.Identifier} = {methodName}(source.{prop.Identifier})""",
                 MappingStrategyInternal.Constructor => !propertyTypeSymbol!.IsPrimitiveType()
                     ? $"""{targetProp.Identifier}: source.{prop.Identifier}.MapTo{propertyTypeSymbol!.Name}()"""
                     : $"""{targetProp.Identifier}: source.{prop.Identifier}""",
@@ -124,8 +140,7 @@ internal class TypeMapping(
                 .Parameters
                 .Select(targetParameter =>
                     new PropertyOrParameter(targetParameter.Type, targetParameter.Identifier.Text))
-                .SingleOrDefault(targetParameter =>
-                    targetParameter.Identifier == targetFieldName);
+                .SingleOrDefault(targetParameter => targetParameter.Identifier == targetFieldName);
         }
 
         return targetType switch
@@ -134,15 +149,13 @@ internal class TypeMapping(
                 .OfType<PropertyDeclarationSyntax>()
                 .Select(targetParameter =>
                     new PropertyOrParameter(targetParameter.Type, targetParameter.Identifier.Text))
-                .SingleOrDefault(targetProperty =>
-                    targetProperty.Identifier == targetFieldName),
+                .SingleOrDefault(targetProperty => targetProperty.Identifier == targetFieldName),
 
             RecordDeclarationSyntax recordDeclaration => recordDeclaration.ParameterList?
                 .Parameters
                 .Select(targetParameter =>
                     new PropertyOrParameter(targetParameter.Type, targetParameter.Identifier.Text))
-                .SingleOrDefault(targetParameter =>
-                    targetParameter.Identifier == targetFieldName),
+                .SingleOrDefault(targetParameter => targetParameter.Identifier == targetFieldName),
             _ => throw new NotImplementedException()
         };
     }

@@ -45,6 +45,9 @@ public class CartographeGeneratorTests
     [Fact]
     public void GenerateConstructorClassMapping() => CodeGenerationAssertion(new ConstructorClassToClass().GetAssertion());
 
+    [Fact]
+    public void GenerateConstructorCustomMethodMapping() => CodeGenerationAssertion(new CustomMethodMapping().GetAssertion());
+
 
     private void CodeGenerationAssertion(SourceGenerationAssertion assertion)
     {

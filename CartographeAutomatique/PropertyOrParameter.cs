@@ -25,5 +25,9 @@ internal class PropertyOrParameter
 
     public AttributeArgumentSyntax? TargetField() => Attribute?.ArgumentList?
         .Arguments
-        .First(arg => arg.NameEquals?.Name.ToString() == "TargetField");
+        .FirstOrDefault(arg => arg.NameEquals?.Name.ToString() == "TargetField");
+
+    public AttributeArgumentSyntax? WithMethod() => Attribute?.ArgumentList?
+        .Arguments
+        .FirstOrDefault(arg => arg.NameEquals?.Name.ToString() == "With");
 }

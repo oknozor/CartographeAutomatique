@@ -32,7 +32,8 @@ internal static class Constant
               public class MappingAttribute : System.Attribute
               {
                   public MappingAttribute() {}
-                  public string TargetField { get; set;} = "";
+                  public string? With { get; set;} = null;
+                  public string? TargetField { get; set;} = null;
                   public System.Type? TargetType { get; set;} = null;
               }
               
