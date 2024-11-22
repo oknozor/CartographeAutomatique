@@ -13,14 +13,14 @@ public record Vehicle(
 
 public class Truck
 {
-    public string TruckColor { get; set; }
-    public string Brand { get; set; }
+    public string? TruckColor { get; set; }
+    public string? Brand { get; set; }
 };
 
 public class Bike
 {
-    public string BikeColor { get; set; }
-    public string Brand { get; set; }
+    public string? BikeColor { get; set; }
+    public string? Brand { get; set; }
 };
 
 public class MultipleTargetFieldMapping

@@ -8,8 +8,8 @@ public record Car(string Color, string Brand);
 
 public class Truck
 {
-    public string Color { get; set; }
-    public string Brand { get; set; }
+    public string? Color { get; set; }
+    public string? Brand { get; set; }
 }
 
 public class RecordToClassMapping
@@ -19,6 +19,9 @@ public class RecordToClassMapping
     {
         var car = new Car("red", "r21");
 
-        car.MapToTruck();
+        var truck = car.MapToTruck();
+
+        Assert.Equal("red", truck.Color);
+        Assert.Equal("r21", truck.Brand);
     }
 }

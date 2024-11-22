@@ -6,15 +6,15 @@ namespace CartographeAutomatique.Tests.Samples.RecursiveMapping;
 [MapTo(typeof(Line2), Exhaustive = false)]
 public class Line3
 {
-    public Point3 A { get; set; }
-    public Point3 B { get; set; }
+    public Point3? A { get; set; }
+    public Point3? B { get; set; }
 }
 
 
 public class Line2
 {
-    public Point2 A { get; set; }
-    public Point2 B { get; set; }
+    public Point2? A { get; set; }
+    public Point2? B { get; set; }
 }
 
 [MapTo(typeof(Point2))]
@@ -44,9 +44,9 @@ public class RecursiveMapping
 
         Line2 line = line3.MapToLine2();
 
-        Assert.Equal(line.A.X, line3.A.MapToPoint2().X);
+        Assert.Equal(line.A!.X, line3.A.MapToPoint2().X);
         Assert.Equal(line.A.Y, line3.A.MapToPoint2().Y);
-        Assert.Equal(line.B.X, line3.B.MapToPoint2().X);
+        Assert.Equal(line.B!.X, line3.B.MapToPoint2().X);
         Assert.Equal(line.B.Y, line3.B.MapToPoint2().Y);
     }
 }

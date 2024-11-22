@@ -27,8 +27,8 @@ public static class SyntaxHelpers
         };
     }
 
-    public static ITypeSymbol? GetPropertyTypeSymbol(this TypeSyntax type, GeneratorSyntaxContext context)
-        => context.SemanticModel.GetTypeInfo(type).Type;
+    public static ITypeSymbol? GetPropertyTypeSymbol(this TypeSyntax? type, GeneratorSyntaxContext context)
+        => context.SemanticModel.GetTypeInfo(type!).Type;
 
     public static AttributeSyntax? GetMatchingMappingAttribute(this MemberDeclarationSyntax memberDeclarationSyntax, string targetClassName)
     {

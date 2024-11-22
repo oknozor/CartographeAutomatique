@@ -3,9 +3,9 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace CartographeAutomatique;
 
-internal class PropertyOrParameter(TypeSyntax type, string identifier, AttributeSyntax? attribute = null)
+internal class PropertyOrParameter(TypeSyntax? type, string identifier, AttributeSyntax? attribute = null)
 {
-    public TypeSyntax Type { get; } = type;
+    public TypeSyntax? Type { get; } = type;
     public string Identifier { get; } = identifier;
 
     public AttributeArgumentSyntax? TargetField() => attribute?.ArgumentList?

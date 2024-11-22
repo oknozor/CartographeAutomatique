@@ -35,12 +35,14 @@ internal class TypeMapping(
         {
             MappingStrategyInternal.Setter => string.Join(",\n\t\t\t", assignations),
             MappingStrategyInternal.Constructor => string.Join(",", assignations),
+            _ => throw new ArgumentOutOfRangeException()
         };
 
         var instantiation = activeStrategy switch
         {
             MappingStrategyInternal.Setter => $"\tnew()\n\t\t{{\n\t\t\t{joinedAssignation}\n\t\t}};",
             MappingStrategyInternal.Constructor => $"\tnew({joinedAssignation});",
+            _ => throw new ArgumentOutOfRangeException()
         };
 
         return $$"""
@@ -106,19 +108,20 @@ internal class TypeMapping(
             }
 
 
-            var targetType = targetProp.Type.GetPropertyTypeSymbol(context);
-            var sourceType = sourceProp.Type.GetPropertyTypeSymbol(context);
+            var targetTypeSymbol = targetProp.Type.GetPropertyTypeSymbol(context);
+            var sourceTypeSymbol = sourceProp.Type.GetPropertyTypeSymbol(context);
 
             string? implicitConversion = null;
             if (customMethod is null)
             {
-                implicitConversion = GetImplicitConversion(sourcePropIdentifier, targetType, sourceType);
+                implicitConversion = GetImplicitConversion(sourcePropIdentifier, targetTypeSymbol, sourceTypeSymbol);
             }
 
             var lhs = activeStrategy switch
             {
                 MappingStrategyInternal.Constructor => $"{targetProp.Identifier}: ",
                 MappingStrategyInternal.Setter => $"{targetProp.Identifier} = ",
+                _ => throw new ArgumentOutOfRangeException(nameof(activeStrategy), activeStrategy, null)
             };
 
 
@@ -128,8 +131,8 @@ internal class TypeMapping(
                     $"{implicitConversion}",
                 _ when methodName is not null =>
                     $"""{methodName}(source.{sourcePropIdentifier})""",
-                _ => !targetType!.IsPrimitiveType()
-                    ? $"""source.{sourcePropIdentifier}.MapTo{targetType!.Name}()"""
+                _ => !targetTypeSymbol!.IsPrimitiveType()
+                    ? $"""source.{sourcePropIdentifier}.MapTo{targetTypeSymbol!.Name}()"""
                     : $"""source.{sourcePropIdentifier}""",
             };
 
@@ -184,8 +187,7 @@ internal class TypeMapping(
                 .OrderByDescending(c => c.ParameterList.Parameters.Count) // Sort by parameter count
                 .FirstOrDefault();
 
-            return constructor?.ParameterList?
-                .Parameters
+            return constructor?.ParameterList.Parameters
                 .Select(targetParameter =>
                     new PropertyOrParameter(targetParameter.Type, targetParameter.Identifier.Text))
                 .SingleOrDefault(targetParameter => targetParameter.Identifier == targetFieldName);

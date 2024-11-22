@@ -7,12 +7,12 @@ namespace CartographeAutomatique.Tests.Samples.CustomFieldMapping;
 public class Author
 {
     [Mapping(TargetField = "FullName")]
-    public string Name { get; init; }
+    public string? Name { get; init; }
 }
 
 public class SongWriter
 {
-    public string FullName { get; set; }
+    public string? FullName { get; set; }
 }
 
 public class CustomFieldMapping

@@ -28,18 +28,16 @@ public class CartographeGenerator : IIncrementalGenerator
         var incrementalValueProvider = provider.Collect();
 
         context.RegisterSourceOutput(context.CompilationProvider.Combine(incrementalValueProvider),
-            (ctx, t) => GenerateCode(ctx, t.Left, t.Right));
+            (ctx, t) => GenerateCode(ctx, t.Right));
     }
 
-    private static List<TypeMapping> GetClassDeclarationForSourceGen(GeneratorSyntaxContext context)
-    {
-        return context.Node switch
+    private static List<TypeMapping> GetClassDeclarationForSourceGen(GeneratorSyntaxContext context) =>
+        context.Node switch
         {
             ClassDeclarationSyntax classDeclaration => PopulateClassMapping(context, classDeclaration),
             RecordDeclarationSyntax recordDeclaration => PopulateRecordMapping(context, recordDeclaration),
-            _ => throw new NotImplementedException()
+            _ => throw new ArgumentOutOfRangeException()
         };
-    }
 
     private static List<TypeMapping> PopulateRecordMapping(GeneratorSyntaxContext context,
         RecordDeclarationSyntax recordDeclarationSyntax)
@@ -143,8 +141,7 @@ public class CartographeGenerator : IIncrementalGenerator
         return classMappings;
     }
 
-    private void GenerateCode(SourceProductionContext context, Compilation compilation,
-        ImmutableArray<List<TypeMapping>> classDeclarations)
+    private void GenerateCode(SourceProductionContext context, ImmutableArray<List<TypeMapping>> classDeclarations)
     {
         var classMappings = classDeclarations.SelectMany(t => t)
             .ToList();
