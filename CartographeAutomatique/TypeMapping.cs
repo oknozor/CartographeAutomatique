@@ -82,7 +82,8 @@ internal class TypeMapping(
             }
 
             var targetField = sourceProp.TargetField();
-            var targetFieldName = sourceProp.Identifier;
+            var sourcePropIdentifier = sourceProp.Identifier;
+            var targetFieldName = sourcePropIdentifier;
 
             if (targetField != null)
             {
@@ -111,51 +112,55 @@ internal class TypeMapping(
             string? implicitConversion = null;
             if (customMethod is null)
             {
-                implicitConversion = GetImplicitConversion(targetType, sourceType);
+                implicitConversion = GetImplicitConversion(sourcePropIdentifier, targetType, sourceType);
             }
-            var assignation = activeStrategy switch
+
+            var lhs = activeStrategy switch
             {
-                MappingStrategyInternal.Constructor when implicitConversion is not null =>
-                    $"""{targetProp.Identifier}: {implicitConversion}(source.{sourceProp.Identifier})""",
-                MappingStrategyInternal.Constructor when methodName is not null =>
-                    $"""{targetProp.Identifier}: {methodName}(source.{sourceProp.Identifier})""",
-                MappingStrategyInternal.Setter when methodName is not null =>
-                    $"""{targetProp.Identifier} = {methodName}(source.{sourceProp.Identifier})""",
-                MappingStrategyInternal.Setter when implicitConversion is not null =>
-                    $"""{targetProp.Identifier} = {implicitConversion}(source.{sourceProp.Identifier})""",
-                MappingStrategyInternal.Constructor => !targetType!.IsPrimitiveType()
-                    ? $"""{targetProp.Identifier}: source.{sourceProp.Identifier}.MapTo{targetType!.Name}()"""
-                    : $"""{targetProp.Identifier}: source.{sourceProp.Identifier}""",
-                MappingStrategyInternal.Setter => !targetType!.IsPrimitiveType()
-                    ? $"""{targetProp.Identifier} = source.{sourceProp.Identifier}.MapTo{targetType!.Name}()"""
-                    : $"""{targetProp.Identifier} = source.{sourceProp.Identifier}""",
-                _ => throw new ArgumentOutOfRangeException(),
+                MappingStrategyInternal.Constructor => $"{targetProp.Identifier}: ",
+                MappingStrategyInternal.Setter => $"{targetProp.Identifier} = ",
             };
 
-            assignations.Add(assignation);
+
+            var rhs = activeStrategy switch
+            {
+                _ when implicitConversion is not null =>
+                    $"{implicitConversion}",
+                _ when methodName is not null =>
+                    $"""{methodName}(source.{sourcePropIdentifier})""",
+                _ => !targetType!.IsPrimitiveType()
+                    ? $"""source.{sourcePropIdentifier}.MapTo{targetType!.Name}()"""
+                    : $"""source.{sourcePropIdentifier}""",
+            };
+
+            assignations.Add($"{lhs}{rhs}");
         }
 
         return assignations;
     }
 
-    private static string? GetImplicitConversion(ITypeSymbol? targetType, ITypeSymbol? sourceType)
+    private static string? GetImplicitConversion(string sourcePropIdentifier, ITypeSymbol? targetType,
+        ITypeSymbol? sourceType)
     {
 
-        // Handle conversion for special type (no clue if int, float, double etc will appear here)
-        var implicitMapping = (targetType?.SpecialType, sourceType?.SpecialType) switch
+        var sourceMemberAccess = $"source.{sourcePropIdentifier}";
+        var implicitMapping = (sourceType?.SpecialType, targetType?.SpecialType) switch
         {
-            (SpecialType.System_String, SpecialType.System_Int16) => "Int16.Parse",
-            (SpecialType.System_String, SpecialType.System_Int32) => "Int32.Parse",
-            (SpecialType.System_String, SpecialType.System_Int64) => "Int64.Parse",
-            (SpecialType.System_String, SpecialType.System_UInt16) => "Int16.Parse",
-            (SpecialType.System_String, SpecialType.System_UInt32) => "UInt32.Parse",
-            (SpecialType.System_String, SpecialType.System_UInt64) => "UInt64.Parse",
-            // Todo: to drive code generation such as `mySouceEnumVariant.ToString()`
-            //      we need a object dedicated to hold the method call generation:
-            //      { method: string, call: static_member_access | instance_invocation }
-            //      enum -> string (instance_invocation)
-            //      int -> string (static_member_access via int.Parse)
-            (SpecialType.System_Enum, _) => "ToString()",
+            (SpecialType.System_String, SpecialType.System_Single) => $"Single.Parse({sourceMemberAccess})",
+            (SpecialType.System_String, SpecialType.System_Int16) => $"Int16.Parse({sourceMemberAccess})",
+            (SpecialType.System_String, SpecialType.System_Int32) => $"Int32.Parse({sourceMemberAccess})",
+            (SpecialType.System_String, SpecialType.System_Int64) => $"Int64.Parse({sourceMemberAccess})",
+            (SpecialType.System_String, SpecialType.System_UInt16) => $"Int16.Parse({sourceMemberAccess})",
+            (SpecialType.System_String, SpecialType.System_UInt32) => $"UInt32.Parse({sourceMemberAccess})",
+            (SpecialType.System_String, SpecialType.System_UInt64) => $"UInt64.Parse({sourceMemberAccess})",
+            (SpecialType.System_Single, SpecialType.System_String) or
+            (SpecialType.System_Int16, SpecialType.System_String) or
+            (SpecialType.System_Int32, SpecialType.System_String) or
+            (SpecialType.System_Int64, SpecialType.System_String) or
+            (SpecialType.System_UInt16, SpecialType.System_String) or
+            (SpecialType.System_UInt32, SpecialType.System_String) or
+            (SpecialType.System_String, SpecialType.System_Enum) or
+            (SpecialType.System_UInt64, SpecialType.System_String) => $"{sourceMemberAccess}.ToString(System.Globalization.CultureInfo.InvariantCulture)",
             _ => null
             // If no special type were found fallback to name comparison 
             // The example below is not working as we probably need to find a way

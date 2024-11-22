@@ -48,6 +48,9 @@ public class CartographeGeneratorTests
     [Fact]
     public void GenerateConstructorCustomMethodMapping() => CodeGenerationAssertion(new CustomMethodMapping().GetAssertion());
 
+    [Fact]
+    public void GenerateImplicitMapping() => CodeGenerationAssertion(new ImplicitMapping().GetAssertion());
+
 
     private void CodeGenerationAssertion(SourceGenerationAssertion assertion)
     {
