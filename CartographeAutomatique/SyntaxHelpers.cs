@@ -27,8 +27,17 @@ public static class SyntaxHelpers
         };
     }
 
-    public static ITypeSymbol? GetPropertyTypeSymbol(this TypeSyntax? type, GeneratorSyntaxContext context)
-        => context.SemanticModel.GetTypeInfo(type!).Type;
+    public static INamedTypeSymbol? GetPropertyTypeSymbol(this TypeSyntax? type, GeneratorSyntaxContext context)
+    {
+        var propertyTypeSymbol = context.SemanticModel.GetTypeInfo(type!).Type;
+
+        if (propertyTypeSymbol is INamedTypeSymbol namedTypeSymbol)
+        {
+            return namedTypeSymbol;
+        }
+
+        return null;
+    }
 
     public static AttributeSyntax? GetMatchingMappingAttribute(this MemberDeclarationSyntax memberDeclarationSyntax, string targetClassName)
     {
@@ -80,7 +89,6 @@ public static class SyntaxHelpers
             );
     }
 
-
     public static TypeDeclarationSyntax? TypeDeclarationSyntaxFromSymbolInfo(this SymbolInfo targetSymbolInfo)
     {
         if (targetSymbolInfo.Symbol is not INamedTypeSymbol
@@ -96,4 +104,10 @@ public static class SyntaxHelpers
 
         return null;
     }
+
+    public static bool IsList(this INamedTypeSymbol? targetSymbol) =>
+        targetSymbol is { Name: "List", TypeArguments.Length: 1 } &&
+        targetSymbol.ContainingNamespace.ToDisplayString() == "System.Collections.Generic";
+
+    public static ITypeSymbol FirstGenericParameterName(this INamedTypeSymbol targetSymbol) => targetSymbol.TypeArguments.First();
 }

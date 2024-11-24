@@ -67,7 +67,7 @@ public class Line2
         		};
         }
         """;
-    
+
     public SourceGenerationAssertion GetAssertion() =>
         new(Source, [
             new("Line3ToLine2", ExpectedLine3ToLine2),

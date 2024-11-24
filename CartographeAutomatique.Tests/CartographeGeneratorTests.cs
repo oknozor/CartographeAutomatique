@@ -51,6 +51,9 @@ public class CartographeGeneratorTests
     [Fact]
     public void GenerateImplicitMapping() => CodeGenerationAssertion(new ImplicitMapping().GetAssertion());
 
+    [Fact]
+    public void GenerateListToListMapping() => CodeGenerationAssertion(new ListToList().GetAssertion());
+
 
     private void CodeGenerationAssertion(SourceGenerationAssertion assertion)
     {
