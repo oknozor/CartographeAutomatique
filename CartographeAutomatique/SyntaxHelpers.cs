@@ -105,9 +105,10 @@ public static class SyntaxHelpers
         return null;
     }
 
-    public static bool IsList(this INamedTypeSymbol? targetSymbol) =>
-        targetSymbol is { Name: "List", TypeArguments.Length: 1 } &&
-        targetSymbol.ContainingNamespace.ToDisplayString() == "System.Collections.Generic";
+    // Not that usage of `<ImplicitUsings>enable</ImplicitUsings>`in csproj prevent from directly looking up
+    // ICollection implementors. That's why we only match against the containing namespace
+    public static bool IsCollection1(this INamedTypeSymbol? targetSymbol) =>
+        targetSymbol?.ContainingNamespace.ToDisplayString() == "System.Collections.Generic" && targetSymbol.TypeArguments.Length == 1;
 
     public static ITypeSymbol FirstGenericParameterName(this INamedTypeSymbol targetSymbol) => targetSymbol.TypeArguments.First();
 }

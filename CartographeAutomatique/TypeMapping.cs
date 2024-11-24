@@ -135,7 +135,8 @@ internal class TypeMapping(
         INamedTypeSymbol? sourceTypeSymbol)
     {
         string? maybeListConvertion = null;
-        if (!targetTypeSymbol.IsList() || !sourceTypeSymbol.IsList()) return maybeListConvertion;
+        if (!targetTypeSymbol.IsCollection1() || !sourceTypeSymbol.IsCollection1()) return maybeListConvertion;
+        
         var sourceGenericParameter = sourceTypeSymbol!.FirstGenericParameterName();
         var targetGenericParameter = targetTypeSymbol!.FirstGenericParameterName();
         var hasSameGenericParameter = sourceGenericParameter.Name == targetGenericParameter.Name
@@ -143,6 +144,7 @@ internal class TypeMapping(
                                           .ToDisplayString() == targetGenericParameter.ContainingNamespace
                                           .ToDisplayString();
 
+        // TODO: Here we need to handle case where the generic parameter is the same but the collection type should be mapped
         if (hasSameGenericParameter) return null;
 
         var listMemberConversion = (targetTypeSymbol!.Name, sourceTypeSymbol!.Name) switch
@@ -150,6 +152,7 @@ internal class TypeMapping(
             ("List", "List") =>
                 GetImplicitConversion("i", targetGenericParameter, sourceGenericParameter)
                 ?? $"i.MapTo{targetGenericParameter!.Name}()",
+            // Todo : 
             _ => throw new NotImplementedException()
         };
 
