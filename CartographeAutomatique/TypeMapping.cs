@@ -71,18 +71,6 @@ internal class TypeMapping(
 
     private string? GenerateAssignation(MappingStrategyInternal activeStrategy, PropertyOrParameter sourceProp)
     {
-        var customMethod = sourceProp.WithMethod();
-        string? methodName = null;
-
-        if (customMethod != null)
-        {
-            var constantValue = context.SemanticModel.GetConstantValue(customMethod.Expression);
-            if (constantValue is { HasValue: true, Value: string methodNameValue })
-            {
-                methodName = $"{methodNameValue}(source.{sourceProp.Identifier})";
-            }
-        }
-
         var targetField = sourceProp.TargetField();
         var targetFieldName = sourceProp.Identifier;
 
@@ -97,7 +85,6 @@ internal class TypeMapping(
 
         var targetProp = GetMatchingTargetProp(targetFieldName, activeStrategy);
 
-
         if (targetProp is null)
         {
             if (exhaustive is false)
@@ -109,14 +96,6 @@ internal class TypeMapping(
         var targetTypeSymbol = targetProp.Type.GetPropertyTypeSymbol(context);
         var sourceTypeSymbol = sourceProp.Type.GetPropertyTypeSymbol(context);
 
-        var maybeListConvertion = ListConversion(sourceProp, targetTypeSymbol, sourceTypeSymbol);
-
-        string? implicitConversion = null;
-        if (customMethod is null)
-        {
-            implicitConversion = GetImplicitConversion(sourceProp.Identifier, targetTypeSymbol, sourceTypeSymbol);
-        }
-
         var lhs = activeStrategy switch
         {
             MappingStrategyInternal.Constructor => $"{targetProp.Identifier}: ",
@@ -124,19 +103,31 @@ internal class TypeMapping(
             _ => throw new ArgumentOutOfRangeException(nameof(activeStrategy), activeStrategy, null)
         };
 
-        var rhs = implicitConversion ?? methodName ?? maybeListConvertion ?? (!targetTypeSymbol!.IsPrimitiveType()
+        var methodName = GetCustomMethodMapping(sourceProp);
+        var maybeListConversion = GetListImplicitConversion(sourceProp, targetTypeSymbol, sourceTypeSymbol);
+        var implicitConversion = GetImplicitConversion(sourceProp.Identifier, targetTypeSymbol, sourceTypeSymbol);
+
+        var rhs = methodName ?? implicitConversion ?? maybeListConversion ?? (!targetTypeSymbol!.IsPrimitiveType()
             ? $"source.{sourceProp.Identifier}.MapTo{targetTypeSymbol!.Name}()"
             : $"source.{sourceProp.Identifier}");
 
         return $"{lhs}{rhs}";
     }
 
-    private static string? ListConversion(PropertyOrParameter sourceProp, INamedTypeSymbol? targetTypeSymbol,
+    private string? GetCustomMethodMapping(PropertyOrParameter sourceProp)
+    {
+        var customMethod = sourceProp.WithMethod();
+        if (customMethod == null) return null;
+        var constantValue = context.SemanticModel.GetConstantValue(customMethod.Expression);
+        return constantValue is { HasValue: true, Value: string methodNameValue } ? $"{methodNameValue}(source.{sourceProp.Identifier})" : null;
+    }
+
+    private static string? GetListImplicitConversion(PropertyOrParameter sourceProp, INamedTypeSymbol? targetTypeSymbol,
         INamedTypeSymbol? sourceTypeSymbol)
     {
-        string? maybeListConvertion = null;
-        if (!targetTypeSymbol.IsCollection1() || !sourceTypeSymbol.IsCollection1()) return maybeListConvertion;
-        
+        string? maybeListConversion = null;
+        if (!targetTypeSymbol.IsCollection1() || !sourceTypeSymbol.IsCollection1()) return maybeListConversion;
+
         var sourceGenericParameter = sourceTypeSymbol!.FirstGenericParameterName();
         var targetGenericParameter = targetTypeSymbol!.FirstGenericParameterName();
         var hasSameGenericParameter = sourceGenericParameter.Name == targetGenericParameter.Name
@@ -151,23 +142,21 @@ internal class TypeMapping(
         {
             ("List", "List") =>
                 GetImplicitConversion("i", targetGenericParameter, sourceGenericParameter)
-                ?? $"i.MapTo{targetGenericParameter!.Name}()",
+                ?? $"i.MapTo{targetGenericParameter.Name}()",
             // Todo : 
             _ => throw new NotImplementedException()
         };
 
-        maybeListConvertion = $"source.{sourceProp.Identifier}.Select(i => {listMemberConversion}).ToList()";
+        maybeListConversion = $"source.{sourceProp.Identifier}.Select(i => {listMemberConversion}).ToList()";
 
-        return maybeListConvertion;
+        return maybeListConversion;
     }
 
     private static string? GetImplicitConversion(string sourcePropIdentifier, ITypeSymbol? targetType,
         ITypeSymbol? sourceType)
     {
         var sourceMemberAccess = $"source.{sourcePropIdentifier}";
-        // var sourceIsCollection = sourceType?.AllInterfaces.Any(i => i.Name is "IEnumerable`1" or "ICollection`1");
-        //  var targetIsCollection = targetType?.AllInterfaces.Any(i => i.Name is "IEnumerable`1" or "ICollection`1");
-        var implicitMapping = (sourceType?.SpecialType, targetType?.SpecialType) switch
+        return (sourceType?.SpecialType, targetType?.SpecialType) switch
         {
             (SpecialType.System_String, SpecialType.System_Single) => $"Single.Parse({sourceMemberAccess})",
             (SpecialType.System_String, SpecialType.System_Int16) => $"Int16.Parse({sourceMemberAccess})",
@@ -186,17 +175,7 @@ internal class TypeMapping(
                 (SpecialType.System_UInt64, SpecialType.System_String) =>
                 $"{sourceMemberAccess}.ToString(System.Globalization.CultureInfo.InvariantCulture)",
             _ => null
-            // If no special type were found fallback to name comparison 
-            // The example below is not working as we probably need to find a way
-            // To extract Generic parameter for collections (or pass the generic parameter in this method call).
-            // This needs further exploration in the ITypeSymbol public API.
-        } ?? (targetType?.Name, sourceType?.Name) switch
-        {
-            ("List<MyType>", "MyType[]") => $"ToString()",
-            _ => null
         };
-
-        return implicitMapping;
     }
 
     private PropertyOrParameter? GetMatchingTargetProp(string targetFieldName, MappingStrategyInternal activeStrategy)
