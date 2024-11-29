@@ -1,14 +1,11 @@
-using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace CartographeAutomatique;
 
-internal class PropertyOrParameter(
+public class PropertyOrParameter(
     TypeSyntax? type,
     string identifier,
-    ImmutableArray<ITypeSymbol>? genericArguments,
     AttributeSyntax? attribute = null)
 {
     public TypeSyntax? Type { get; } = type;

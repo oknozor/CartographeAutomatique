@@ -48,7 +48,7 @@ public class ListToList : IFixture
             public static TestNamespace.Basket MapToBasket(this Garden source) =>
                	new()
         		{
-        			Articles = source.Fruits.Select(i => i.MapToArticle()).ToList()
+        			Articles = source.Fruits.Select(t => t.MapToArticle()).ToList()
         		};
         }
         """;

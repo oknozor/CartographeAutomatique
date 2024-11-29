@@ -63,7 +63,7 @@ public class CartographeGenerator : IIncrementalGenerator
                 var strategy = mappingStrategyArgument?.Name.ToString() switch
                 {
                     "Constructor" => MappingStrategyInternal.Constructor,
-                    _ => MappingStrategyInternal.Setter,
+                    _ => MappingStrategyInternal.Setter
                 };
 
                 var exhaustive = exhaustiveArgument?.Kind() == SyntaxKind.TrueLiteralExpression;
@@ -114,7 +114,7 @@ public class CartographeGenerator : IIncrementalGenerator
                 var strategy = mappingStrategyArgument?.Name.ToString() switch
                 {
                     "Constructor" => MappingStrategyInternal.Constructor,
-                    _ => MappingStrategyInternal.Setter,
+                    _ => MappingStrategyInternal.Setter
                 };
 
                 var exhaustive = exhaustiveArgument?.Kind() == SyntaxKind.TrueLiteralExpression;
@@ -141,7 +141,7 @@ public class CartographeGenerator : IIncrementalGenerator
         return classMappings;
     }
 
-    private void GenerateCode(SourceProductionContext context, ImmutableArray<List<TypeMapping>> classDeclarations)
+    private static void GenerateCode(SourceProductionContext context, ImmutableArray<List<TypeMapping>> classDeclarations)
     {
         var classMappings = classDeclarations.SelectMany(t => t)
             .ToList();

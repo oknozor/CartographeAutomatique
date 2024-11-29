@@ -54,8 +54,14 @@ public class CartographeGeneratorTests
     [Fact]
     public void GenerateListToListMapping() => CodeGenerationAssertion(new ListToList().GetAssertion());
 
+    [Fact]
+    public void GenerateListToArrayMapping() => CodeGenerationAssertion(new ListToArrayMapping().GetAssertion());
 
-    private void CodeGenerationAssertion(SourceGenerationAssertion assertion)
+    [Fact]
+    public void GenerateRecursiveListMapping() => CodeGenerationAssertion(new RecursiveListMapping().GetAssertion());
+
+
+    private static void CodeGenerationAssertion(SourceGenerationAssertion assertion)
     {
         var generator = new CartographeGenerator();
         var driver = CSharpGeneratorDriver.Create(generator);

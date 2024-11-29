@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -71,18 +70,7 @@ internal class TypeMapping(
 
     private string? GenerateAssignation(MappingStrategyInternal activeStrategy, PropertyOrParameter sourceProp)
     {
-        var targetField = sourceProp.TargetField();
-        var targetFieldName = sourceProp.Identifier;
-
-        if (targetField != null)
-        {
-            var constantValue = context.SemanticModel.GetConstantValue(targetField.Expression);
-            if (constantValue is { HasValue: true, Value: string targetMappingFieldName })
-            {
-                targetFieldName = targetMappingFieldName;
-            }
-        }
-
+        var targetFieldName = GetTargetFieldName(sourceProp);
         var targetProp = GetMatchingTargetProp(targetFieldName, activeStrategy);
 
         if (targetProp is null)
@@ -93,8 +81,13 @@ internal class TypeMapping(
             throw new Exception("invalid mapping");
         }
 
-        var targetTypeSymbol = targetProp.Type.GetPropertyTypeSymbol(context);
-        var sourceTypeSymbol = sourceProp.Type.GetPropertyTypeSymbol(context);
+        var targetTypeSymbol = context.SemanticModel.GetTypeInfo(targetProp.Type!).Type;
+        var sourceTypeSymbol = context.SemanticModel.GetTypeInfo(sourceProp.Type!).Type;
+
+        if (targetTypeSymbol is null || sourceTypeSymbol is null)
+        {
+            return null;
+        }
 
         var lhs = activeStrategy switch
         {
@@ -104,14 +97,25 @@ internal class TypeMapping(
         };
 
         var methodName = GetCustomMethodMapping(sourceProp);
-        var maybeListConversion = GetListImplicitConversion(sourceProp, targetTypeSymbol, sourceTypeSymbol);
-        var implicitConversion = GetImplicitConversion(sourceProp.Identifier, targetTypeSymbol, sourceTypeSymbol);
+        var sourceMemberAccess = $"source.{sourceProp.Identifier}";
+        var conversion = sourceTypeSymbol.ImplicitConversionTo(targetTypeSymbol, sourceMemberAccess);
 
-        var rhs = methodName ?? implicitConversion ?? maybeListConversion ?? (!targetTypeSymbol!.IsPrimitiveType()
-            ? $"source.{sourceProp.Identifier}.MapTo{targetTypeSymbol!.Name}()"
-            : $"source.{sourceProp.Identifier}");
+        return $"{lhs}{methodName ?? conversion}";
+    }
 
-        return $"{lhs}{rhs}";
+    private string GetTargetFieldName(PropertyOrParameter sourceProp)
+    {
+        var targetField = sourceProp.TargetField();
+        var targetFieldName = sourceProp.Identifier;
+        if (targetField == null) return targetFieldName;
+
+        var constantValue = context.SemanticModel.GetConstantValue(targetField.Expression);
+        if (constantValue is { HasValue: true, Value: string targetMappingFieldName })
+        {
+            targetFieldName = targetMappingFieldName;
+        }
+
+        return targetFieldName;
     }
 
     private string? GetCustomMethodMapping(PropertyOrParameter sourceProp)
@@ -119,68 +123,30 @@ internal class TypeMapping(
         var customMethod = sourceProp.WithMethod();
         if (customMethod == null) return null;
         var constantValue = context.SemanticModel.GetConstantValue(customMethod.Expression);
-        return constantValue is { HasValue: true, Value: string methodNameValue } ? $"{methodNameValue}(source.{sourceProp.Identifier})" : null;
-    }
-
-    private static string? GetListImplicitConversion(PropertyOrParameter sourceProp, INamedTypeSymbol? targetTypeSymbol,
-        INamedTypeSymbol? sourceTypeSymbol)
-    {
-        string? maybeListConversion = null;
-        if (!targetTypeSymbol.IsCollection1() || !sourceTypeSymbol.IsCollection1()) return maybeListConversion;
-
-        var sourceGenericParameter = sourceTypeSymbol!.FirstGenericParameterName();
-        var targetGenericParameter = targetTypeSymbol!.FirstGenericParameterName();
-        var hasSameGenericParameter = sourceGenericParameter.Name == targetGenericParameter.Name
-                                      && sourceGenericParameter.ContainingNamespace
-                                          .ToDisplayString() == targetGenericParameter.ContainingNamespace
-                                          .ToDisplayString();
-
-        // TODO: Here we need to handle case where the generic parameter is the same but the collection type should be mapped
-        if (hasSameGenericParameter) return null;
-
-        var listMemberConversion = (targetTypeSymbol!.Name, sourceTypeSymbol!.Name) switch
-        {
-            ("List", "List") =>
-                GetImplicitConversion("i", targetGenericParameter, sourceGenericParameter)
-                ?? $"i.MapTo{targetGenericParameter.Name}()",
-            // Todo : 
-            _ => throw new NotImplementedException()
-        };
-
-        maybeListConversion = $"source.{sourceProp.Identifier}.Select(i => {listMemberConversion}).ToList()";
-
-        return maybeListConversion;
-    }
-
-    private static string? GetImplicitConversion(string sourcePropIdentifier, ITypeSymbol? targetType,
-        ITypeSymbol? sourceType)
-    {
-        var sourceMemberAccess = $"source.{sourcePropIdentifier}";
-        return (sourceType?.SpecialType, targetType?.SpecialType) switch
-        {
-            (SpecialType.System_String, SpecialType.System_Single) => $"Single.Parse({sourceMemberAccess})",
-            (SpecialType.System_String, SpecialType.System_Int16) => $"Int16.Parse({sourceMemberAccess})",
-            (SpecialType.System_String, SpecialType.System_Int32) => $"Int32.Parse({sourceMemberAccess})",
-            (SpecialType.System_String, SpecialType.System_Int64) => $"Int64.Parse({sourceMemberAccess})",
-            (SpecialType.System_String, SpecialType.System_UInt16) => $"Int16.Parse({sourceMemberAccess})",
-            (SpecialType.System_String, SpecialType.System_UInt32) => $"UInt32.Parse({sourceMemberAccess})",
-            (SpecialType.System_String, SpecialType.System_UInt64) => $"UInt64.Parse({sourceMemberAccess})",
-            (SpecialType.System_Single, SpecialType.System_String) or
-                (SpecialType.System_Int16, SpecialType.System_String) or
-                (SpecialType.System_Int32, SpecialType.System_String) or
-                (SpecialType.System_Int64, SpecialType.System_String) or
-                (SpecialType.System_UInt16, SpecialType.System_String) or
-                (SpecialType.System_UInt32, SpecialType.System_String) or
-                (SpecialType.System_String, SpecialType.System_Enum) or
-                (SpecialType.System_UInt64, SpecialType.System_String) =>
-                $"{sourceMemberAccess}.ToString(System.Globalization.CultureInfo.InvariantCulture)",
-            _ => null
-        };
+        return constantValue is { HasValue: true, Value: string methodNameValue }
+            ? $"{methodNameValue}(source.{sourceProp.Identifier})"
+            : null;
     }
 
     private PropertyOrParameter? GetMatchingTargetProp(string targetFieldName, MappingStrategyInternal activeStrategy)
     {
-        if (targetType is ClassDeclarationSyntax targetClass && activeStrategy == MappingStrategyInternal.Constructor)
+        if (targetType is not ClassDeclarationSyntax targetClass ||
+            activeStrategy != MappingStrategyInternal.Constructor)
+            return targetType switch
+            {
+                ClassDeclarationSyntax classDeclaration => classDeclaration.Members
+                    .OfType<PropertyDeclarationSyntax>()
+                    .Select(targetParameter =>
+                        new PropertyOrParameter(targetParameter.Type, targetParameter.Identifier.Text))
+                    .SingleOrDefault(targetProperty => targetProperty.Identifier == targetFieldName),
+
+                RecordDeclarationSyntax recordDeclaration => recordDeclaration.ParameterList?
+                    .Parameters
+                    .Select(targetParameter =>
+                        new PropertyOrParameter(targetParameter.Type, targetParameter.Identifier.Text))
+                    .SingleOrDefault(targetParameter => targetParameter.Identifier == targetFieldName),
+                _ => throw new ArgumentOutOfRangeException()
+            };
         {
             var constructor = targetClass.Members
                 .OfType<ConstructorDeclarationSyntax>()
@@ -189,28 +155,9 @@ internal class TypeMapping(
 
             return constructor?.ParameterList.Parameters
                 .Select(targetParameter =>
-                    new PropertyOrParameter(targetParameter.Type, targetParameter.Identifier.Text,
-                        GetGenericTypeArguments(targetParameter)))
+                    new PropertyOrParameter(targetParameter.Type, targetParameter.Identifier.Text))
                 .SingleOrDefault(targetParameter => targetParameter.Identifier == targetFieldName);
         }
-
-        return targetType switch
-        {
-            ClassDeclarationSyntax classDeclaration => classDeclaration.Members
-                .OfType<PropertyDeclarationSyntax>()
-                .Select(targetParameter =>
-                    new PropertyOrParameter(targetParameter.Type, targetParameter.Identifier.Text,
-                        GetGenericTypeArguments(targetParameter)))
-                .SingleOrDefault(targetProperty => targetProperty.Identifier == targetFieldName),
-
-            RecordDeclarationSyntax recordDeclaration => recordDeclaration.ParameterList?
-                .Parameters
-                .Select(targetParameter =>
-                    new PropertyOrParameter(targetParameter.Type, targetParameter.Identifier.Text,
-                        GetGenericTypeArguments(targetParameter)))
-                .SingleOrDefault(targetParameter => targetParameter.Identifier == targetFieldName),
-            _ => throw new ArgumentOutOfRangeException()
-        };
     }
 
     private IEnumerable<PropertyOrParameter>? GetSourceProperties() =>
@@ -221,8 +168,7 @@ internal class TypeMapping(
                 .Select(member =>
                     (Member: member, Attribute: member.GetMatchingMappingAttribute(TargetClassName)))
                 .Select(type =>
-                    new PropertyOrParameter(type.Member.Type, type.Member.Identifier.Text,
-                        GetGenericTypeArguments(type.Member), type.Attribute)),
+                    new PropertyOrParameter(type.Member.Type, type.Member.Identifier.Text, type.Attribute)),
 
             RecordDeclarationSyntax sourceRecord => sourceRecord
                 .ParameterList?
@@ -231,51 +177,23 @@ internal class TypeMapping(
                 .Select(parameter => (Parameter: parameter,
                     Attribute: parameter.GetMatchingMappingAttribute(TargetClassName)))
                 .Select(type =>
-                    new PropertyOrParameter(type.Parameter.Type, type.Parameter.Identifier.Text,
-                        GetGenericTypeArguments(type.Parameter), type.Attribute)),
+                    new PropertyOrParameter(type.Parameter.Type, type.Parameter.Identifier.Text, type.Attribute)),
             _ => throw new ArgumentOutOfRangeException(nameof(sourceType), sourceType, null)
         };
 
     private string? TargetNameSpace()
     {
-        if (context.SemanticModel.GetDeclaredSymbol(targetType) is not INamedTypeSymbol sourceClassSymbol)
-            return null;
-
-        return sourceClassSymbol.ContainingNamespace.ToDisplayString();
+        return context.SemanticModel.GetDeclaredSymbol(targetType) is not INamedTypeSymbol sourceClassSymbol
+            ? null
+            : sourceClassSymbol.ContainingNamespace.ToDisplayString();
     }
 
     private string? SourceNameSpace()
     {
-        if (context.SemanticModel.GetDeclaredSymbol(sourceType) is not INamedTypeSymbol sourceClassSymbol)
-            return null;
-
-        return sourceClassSymbol.ContainingNamespace.ToDisplayString();
+        return context.SemanticModel.GetDeclaredSymbol(sourceType) is not INamedTypeSymbol sourceClassSymbol
+            ? null
+            : sourceClassSymbol.ContainingNamespace.ToDisplayString();
     }
 
     private bool TargetIsRecord() => targetType is RecordDeclarationSyntax;
-
-
-    private ImmutableArray<ITypeSymbol>? GetGenericTypeArguments(PropertyDeclarationSyntax propertyDeclarationSyntax)
-    {
-        if (context.SemanticModel.GetDeclaredSymbol(propertyDeclarationSyntax) is not IPropertySymbol propertySymbol)
-        {
-            return null;
-        }
-
-        if (propertySymbol.Type is not INamedTypeSymbol { IsGenericType: true } namedType) return null;
-        var genericArguments = namedType.TypeArguments;
-        return genericArguments;
-    }
-
-    private ImmutableArray<ITypeSymbol>? GetGenericTypeArguments(ParameterSyntax parameterSyntax)
-    {
-        if (context.SemanticModel.GetDeclaredSymbol(parameterSyntax) is not IParameterSymbol propertySymbol)
-        {
-            return null;
-        }
-
-        if (propertySymbol.Type is not INamedTypeSymbol { IsGenericType: true } namedType) return null;
-        var genericArguments = namedType.TypeArguments;
-        return genericArguments;
-    }
 }

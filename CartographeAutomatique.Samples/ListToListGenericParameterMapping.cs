@@ -1,4 +1,4 @@
-namespace CartographeAutomatique.Samples;
+namespace CartographeAutomatique.Samples.ListToListGenericParameterMapping;
 
 using Generators;
 
@@ -22,7 +22,7 @@ public class Garden
 
 public class Basket
 {
-    public List<Article> Articles { get; set; }
+    public required List<Article> Articles { get; set; }
 }
 
 public class ListToListGenericParameterMapping
