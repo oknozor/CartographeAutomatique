@@ -71,6 +71,7 @@ public static class SyntaxHelpers
 
         return (source.SpecialType, target.SpecialType) switch
         {
+            // TODO: Complete with relevant special types (AKA built-in types), all cases cannot be covered though
             (SpecialType.System_String, SpecialType.System_Single) => $"Single.Parse({sourceIdentifier})",
             (SpecialType.System_String, SpecialType.System_Int16) => $"Int16.Parse({sourceIdentifier})",
             (SpecialType.System_String, SpecialType.System_Int32) => $"Int32.Parse({sourceIdentifier})",
@@ -103,7 +104,7 @@ public static class SyntaxHelpers
 
         var converter = targetType.OuterTypeSymbol()?.Name switch
         {
-            // TODO: exhaustivity
+            // TODO: make exhaustive by completing with relevant ICollection'1 
             _ when targetType.IsArray() => "ToArray()",
             "List" => "ToList()",
             "ImmutableList" => "ToImmutableList()",

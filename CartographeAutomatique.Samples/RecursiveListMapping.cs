@@ -18,7 +18,7 @@ public class RecursiveListMapping
     [Fact]
     void Should_generate_mappings()
     {
-        var a = new A()
+        var a = new A
         {
             Names = [[["Riri", "Fifi", "Loulou"]]]
         };
