@@ -60,6 +60,9 @@ public class CartographeGeneratorTests
     [Fact]
     public void GenerateRecursiveListMapping() => CodeGenerationAssertion(new RecursiveListMapping().GetAssertion());
 
+    [Fact]
+    public void GenerateFromMapping() => CodeGenerationAssertion(new SimpleFromClassMapping().GetAssertion());
+
 
     private static void CodeGenerationAssertion(SourceGenerationAssertion assertion)
     {

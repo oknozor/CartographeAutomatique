@@ -13,6 +13,7 @@ public enum MappingStrategyInternal
 }
 
 internal class TypeMapping(
+    MappingKind mappingKind,
     TypeDeclarationSyntax sourceType,
     TypeDeclarationSyntax targetType,
     bool exhaustive,
@@ -57,8 +58,8 @@ internal class TypeMapping(
                  """;
     }
 
-    public string SourceClassName => sourceType.Identifier.Text;
-    public string TargetClassName => targetType.Identifier.Text;
+    public string SourceClassName => SourceType().Identifier.Text;
+    public string TargetClassName => TargetType().Identifier.Text;
 
 
     private List<string> GenerateAllAssignation(MappingStrategyInternal activeStrategy) =>
@@ -161,7 +162,7 @@ internal class TypeMapping(
     }
 
     private IEnumerable<PropertyOrParameter>? GetSourceProperties() =>
-        sourceType switch
+        SourceType() switch
         {
             ClassDeclarationSyntax sourceClass => sourceClass.Members
                 .OfType<PropertyDeclarationSyntax>()
@@ -178,7 +179,7 @@ internal class TypeMapping(
                     Attribute: parameter.GetMatchingMappingAttribute(TargetClassName)))
                 .Select(type =>
                     new PropertyOrParameter(type.Parameter.Type, type.Parameter.Identifier.Text, type.Attribute)),
-            _ => throw new ArgumentOutOfRangeException(nameof(sourceType), sourceType, null)
+            _ => throw new ArgumentOutOfRangeException(nameof(SourceType), SourceType(), null)
         };
 
     private string? TargetNameSpace()
@@ -190,10 +191,24 @@ internal class TypeMapping(
 
     private string? SourceNameSpace()
     {
-        return context.SemanticModel.GetDeclaredSymbol(sourceType) is not INamedTypeSymbol sourceClassSymbol
+        return context.SemanticModel.GetDeclaredSymbol(SourceType()) is not INamedTypeSymbol sourceClassSymbol
             ? null
             : sourceClassSymbol.ContainingNamespace.ToDisplayString();
     }
 
     private bool TargetIsRecord() => targetType is RecordDeclarationSyntax;
+
+    private TypeDeclarationSyntax SourceType() => mappingKind switch
+    {
+        MappingKind.MapTo => sourceType,
+        MappingKind.MapFrom => targetType,
+        _ => throw new ArgumentOutOfRangeException(nameof(mappingKind), mappingKind, null)
+    };
+
+    private TypeDeclarationSyntax TargetType() => mappingKind switch
+    {
+        MappingKind.MapTo => targetType,
+        MappingKind.MapFrom => sourceType,
+        _ => throw new ArgumentOutOfRangeException(nameof(mappingKind), mappingKind, null)
+    };
 }

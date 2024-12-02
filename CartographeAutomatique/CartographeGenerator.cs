@@ -9,6 +9,12 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace CartographeAutomatique;
 
+enum MappingKind
+{
+    MapTo,
+    MapFrom
+}
+
 [Generator]
 public class CartographeGenerator : IIncrementalGenerator
 {
@@ -18,28 +24,29 @@ public class CartographeGenerator : IIncrementalGenerator
             "MapToAttribute.g.cs",
             SourceText.From(Constant.AttributeSourceCode, Encoding.UTF8)));
 
-        var pipeline = context.SyntaxProvider.ForAttributeWithMetadataName(
+        var mapToPipeline = context.SyntaxProvider.ForAttributeWithMetadataName(
             fullyQualifiedMetadataName: "Generators.MapToAttribute",
             predicate: static (syntaxNode, _) => syntaxNode is TypeDeclarationSyntax,
-            transform: static (context, _) => GetClassDeclarationForSourceGen(context));
+            transform: static (context, _) => PopulateTypeMapping(context, MappingKind.MapTo));
 
-        context.RegisterSourceOutput(pipeline, GenerateCode);
+        var mapFromPipeline = context.SyntaxProvider.ForAttributeWithMetadataName(
+            fullyQualifiedMetadataName: "Generators.MapFromAttribute",
+            predicate: static (syntaxNode, _) => syntaxNode is TypeDeclarationSyntax,
+            transform: static (context, _) => PopulateTypeMapping(context, MappingKind.MapFrom));
+
+        context.RegisterSourceOutput(mapToPipeline,
+            (productionContext, list) => GenerateCode(productionContext, list, MappingKind.MapTo));
+
+        context.RegisterSourceOutput(mapFromPipeline,
+            (productionContext, list) => GenerateCode(productionContext, list, MappingKind.MapTo));
     }
 
-    private static List<TypeMapping> GetClassDeclarationForSourceGen(GeneratorAttributeSyntaxContext context) =>
-        context.TargetNode switch
-        {
-            ClassDeclarationSyntax classDeclaration => PopulateClassMapping(context, classDeclaration),
-            RecordDeclarationSyntax recordDeclaration => PopulateRecordMapping(context, recordDeclaration),
-            _ => throw new ArgumentOutOfRangeException()
-        };
-
-    private static List<TypeMapping> PopulateRecordMapping(GeneratorAttributeSyntaxContext context,
-        RecordDeclarationSyntax recordDeclarationSyntax)
+    private static List<TypeMapping> PopulateTypeMapping(GeneratorAttributeSyntaxContext context, MappingKind mappingKind)
     {
+        var typeDeclarationSyntax = (context.TargetNode as TypeDeclarationSyntax)!;
         var classMappings = new List<TypeMapping>();
 
-        foreach (var attributeListSyntax in recordDeclarationSyntax.AttributeLists)
+        foreach (var attributeListSyntax in typeDeclarationSyntax.AttributeLists)
             foreach (var arguments in
                      from attributeSyntax in attributeListSyntax.Attributes
                      select attributeSyntax.ArgumentList?.Arguments)
@@ -58,7 +65,8 @@ public class CartographeGenerator : IIncrementalGenerator
 
                 classMappings.Add(
                     new TypeMapping(
-                        recordDeclarationSyntax,
+                        mappingKind,
+                        typeDeclarationSyntax,
                         targetTypeSyntax,
                         exhaustive,
                         strategy,
@@ -70,49 +78,19 @@ public class CartographeGenerator : IIncrementalGenerator
         return classMappings;
     }
 
-    private static List<TypeMapping> PopulateClassMapping(GeneratorAttributeSyntaxContext context,
-        ClassDeclarationSyntax classDeclarationSyntax)
-    {
-        var classMappings = new List<TypeMapping>();
-
-        foreach (var attributeListSyntax in classDeclarationSyntax.AttributeLists)
-            foreach (var arguments in
-                     from attributeSyntax in attributeListSyntax.Attributes
-                     select attributeSyntax.ArgumentList?.Arguments)
-            {
-                var targetTypeArgument = arguments?.FirstOrDefault();
-                var exhaustive = IsExhaustive(arguments);
-                var strategy = GetMappingStrategy(arguments);
-
-                if (targetTypeArgument?.Expression is not TypeOfExpressionSyntax typeOfExpressionSyntax) continue;
-
-                var targetIdentifierName = typeOfExpressionSyntax.Type as IdentifierNameSyntax;
-                var targetSymbolInfo = ModelExtensions.GetSymbolInfo(context.SemanticModel, targetIdentifierName!);
-                var targetTypeSyntax = targetSymbolInfo.TypeDeclarationSyntaxFromSymbolInfo();
-
-                if (targetTypeSyntax is null) continue;
-
-                classMappings.Add(
-                    new TypeMapping(
-                        classDeclarationSyntax,
-                        targetTypeSyntax,
-                        exhaustive,
-                        strategy,
-                        context
-                    )
-                );
-            }
-
-        return classMappings;
-    }
-
-    private static void GenerateCode(SourceProductionContext context, List<TypeMapping> classMappings)
+    private static void GenerateCode(SourceProductionContext context, List<TypeMapping> classMappings, MappingKind mappingKind)
     {
         foreach (var classMapping in classMappings)
         {
             var generatedMapping = classMapping.GenerateMapping();
-            context.AddSource($"{classMapping.SourceClassName}To{classMapping.TargetClassName}.g.cs",
-                SourceText.From(generatedMapping, Encoding.UTF8));
+            var sourceFileName = mappingKind switch
+            {
+                MappingKind.MapTo => $"{classMapping.SourceClassName}To{classMapping.TargetClassName}.g.cs",
+                MappingKind.MapFrom => $"{classMapping.SourceClassName}From{classMapping.TargetClassName}.g.cs",
+                _ => throw new ArgumentOutOfRangeException(nameof(mappingKind), mappingKind, null)
+            };
+
+            context.AddSource(sourceFileName, SourceText.From(generatedMapping, Encoding.UTF8));
         }
     }
 
