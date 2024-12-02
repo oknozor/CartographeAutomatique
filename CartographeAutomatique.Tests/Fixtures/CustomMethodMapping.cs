@@ -6,7 +6,8 @@ public class CustomMethodMapping
         //language=csharp
         """
         namespace TestNamespace;
-
+        using Generators;
+        
         [MapTo(typeof(StreetNumber))]
         public class AddressNumber
         {

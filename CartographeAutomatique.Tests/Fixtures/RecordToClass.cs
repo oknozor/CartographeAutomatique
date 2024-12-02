@@ -6,7 +6,8 @@ public class RecordToClass : IFixture
         //language=csharp
         """
         namespace TestNamespace;
-
+        using Generators;
+        
         [MapTo(typeof(Truck))]
         internal record Car(string Color, string Brand);
 

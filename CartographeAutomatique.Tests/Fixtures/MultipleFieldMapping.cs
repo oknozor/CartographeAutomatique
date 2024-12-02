@@ -6,7 +6,8 @@ public class MultipleFieldMapping : IFixture
         //language=csharp
         """
         namespace TestNamespace;
-
+        using Generators;
+        
         [MapTo(typeof(Truck))]
         [MapTo(typeof(Bike))]
         internal record Vehicle(

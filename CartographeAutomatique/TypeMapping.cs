@@ -17,7 +17,7 @@ internal class TypeMapping(
     TypeDeclarationSyntax targetType,
     bool exhaustive,
     MappingStrategyInternal strategy,
-    GeneratorSyntaxContext context)
+    GeneratorAttributeSyntaxContext context)
 {
     public string GenerateMapping()
     {

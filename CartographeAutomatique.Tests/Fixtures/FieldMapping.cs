@@ -7,7 +7,8 @@ public class FieldMapping : IFixture
         """
         
             namespace TestNamespace;
-        
+            using Generators;
+            
             [MapTo(typeof(SongWriter))]
             class Author
             {

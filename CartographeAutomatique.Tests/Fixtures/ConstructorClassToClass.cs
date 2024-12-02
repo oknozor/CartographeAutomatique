@@ -6,7 +6,8 @@ public class ConstructorClassToClass
         //language=csharp
         """
         namespace TestNamespace;
-
+        using Generators;
+        
         [MapTo(typeof(Point), MappingStrategy = MappingStrategy.Constructor)]
         public class Vector
         {

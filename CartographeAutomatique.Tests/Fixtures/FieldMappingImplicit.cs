@@ -5,9 +5,9 @@ public class FieldMappingImplicit
     private const string Source =
         //language=csharp
         """
-        
             namespace TestNamespace;
-        
+            using Generators;
+            
             [MapTo(typeof(SongWriter))]
             class Author
             {

@@ -6,7 +6,8 @@ public class MutlipleMapping : IFixture
         //language=csharp
         """
         namespace TestNamespace;
-
+        using Generators;
+        
         [MapTo(typeof(Point))]
         [MapTo(typeof(Point2), Exhaustive = false)]
         public class Vector3

@@ -6,7 +6,8 @@ public class RecordToRecord : IFixture
         //language=csharp
         """
         namespace TestNamespace;
-
+        using Generators;
+        
         [MapTo(typeof(HexColor))]
         public record Color([Mapping(TargetType = typeof(HexColor), TargetField = "HexValue")] string Value);
 

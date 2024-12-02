@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
@@ -19,27 +18,23 @@ public class CartographeGenerator : IIncrementalGenerator
             "MapToAttribute.g.cs",
             SourceText.From(Constant.AttributeSourceCode, Encoding.UTF8)));
 
-        var provider = context.SyntaxProvider
-            .CreateSyntaxProvider(
-                (s, _) => s is TypeDeclarationSyntax,
-                (ctx, _) => GetClassDeclarationForSourceGen(ctx))
-            .Where(mappings => mappings.Count > 0);
+        var pipeline = context.SyntaxProvider.ForAttributeWithMetadataName(
+            fullyQualifiedMetadataName: "Generators.MapToAttribute",
+            predicate: static (syntaxNode, _) => syntaxNode is TypeDeclarationSyntax,
+            transform: static (context, _) => GetClassDeclarationForSourceGen(context));
 
-        var incrementalValueProvider = provider.Collect();
-
-        context.RegisterSourceOutput(context.CompilationProvider.Combine(incrementalValueProvider),
-            (ctx, t) => GenerateCode(ctx, t.Right));
+        context.RegisterSourceOutput(pipeline, GenerateCode);
     }
 
-    private static List<TypeMapping> GetClassDeclarationForSourceGen(GeneratorSyntaxContext context) =>
-        context.Node switch
+    private static List<TypeMapping> GetClassDeclarationForSourceGen(GeneratorAttributeSyntaxContext context) =>
+        context.TargetNode switch
         {
             ClassDeclarationSyntax classDeclaration => PopulateClassMapping(context, classDeclaration),
             RecordDeclarationSyntax recordDeclaration => PopulateRecordMapping(context, recordDeclaration),
             _ => throw new ArgumentOutOfRangeException()
         };
 
-    private static List<TypeMapping> PopulateRecordMapping(GeneratorSyntaxContext context,
+    private static List<TypeMapping> PopulateRecordMapping(GeneratorAttributeSyntaxContext context,
         RecordDeclarationSyntax recordDeclarationSyntax)
     {
         var classMappings = new List<TypeMapping>();
@@ -47,26 +42,11 @@ public class CartographeGenerator : IIncrementalGenerator
         foreach (var attributeListSyntax in recordDeclarationSyntax.AttributeLists)
             foreach (var arguments in
                      from attributeSyntax in attributeListSyntax.Attributes
-                     where attributeSyntax.Name.ToString() != $"{Constant.Namespace}.{Constant.AttributeName}"
                      select attributeSyntax.ArgumentList?.Arguments)
             {
                 var targetTypeArgument = arguments?.FirstOrDefault();
-
-                var exhaustiveArgument = arguments?
-                    .SingleOrDefault(arg => arg.NameEquals?.Name.ToString() == "Exhaustive")?
-                    .Expression as LiteralExpressionSyntax;
-
-                var mappingStrategyArgument = arguments?
-                    .SingleOrDefault(arg => arg.NameEquals?.Name.ToString() == "MappingStrategy")
-                    ?.Expression as MemberAccessExpressionSyntax;
-
-                var strategy = mappingStrategyArgument?.Name.ToString() switch
-                {
-                    "Constructor" => MappingStrategyInternal.Constructor,
-                    _ => MappingStrategyInternal.Setter
-                };
-
-                var exhaustive = exhaustiveArgument?.Kind() == SyntaxKind.TrueLiteralExpression;
+                var exhaustive = IsExhaustive(arguments);
+                var strategy = GetMappingStrategy(arguments);
 
                 if (targetTypeArgument?.Expression is not TypeOfExpressionSyntax typeOfExpressionSyntax) continue;
 
@@ -90,7 +70,7 @@ public class CartographeGenerator : IIncrementalGenerator
         return classMappings;
     }
 
-    private static List<TypeMapping> PopulateClassMapping(GeneratorSyntaxContext context,
+    private static List<TypeMapping> PopulateClassMapping(GeneratorAttributeSyntaxContext context,
         ClassDeclarationSyntax classDeclarationSyntax)
     {
         var classMappings = new List<TypeMapping>();
@@ -98,26 +78,11 @@ public class CartographeGenerator : IIncrementalGenerator
         foreach (var attributeListSyntax in classDeclarationSyntax.AttributeLists)
             foreach (var arguments in
                      from attributeSyntax in attributeListSyntax.Attributes
-                     where attributeSyntax.Name.ToString() != $"{Constant.Namespace}.{Constant.AttributeName}"
                      select attributeSyntax.ArgumentList?.Arguments)
             {
                 var targetTypeArgument = arguments?.FirstOrDefault();
-
-                var exhaustiveArgument = arguments?
-                    .SingleOrDefault(arg => arg.NameEquals?.Name.ToString() == "Exhaustive")?
-                    .Expression as LiteralExpressionSyntax;
-
-                var mappingStrategyArgument = arguments?
-                    .SingleOrDefault(arg => arg.NameEquals?.Name.ToString() == "MappingStrategy")
-                    ?.Expression as MemberAccessExpressionSyntax;
-
-                var strategy = mappingStrategyArgument?.Name.ToString() switch
-                {
-                    "Constructor" => MappingStrategyInternal.Constructor,
-                    _ => MappingStrategyInternal.Setter
-                };
-
-                var exhaustive = exhaustiveArgument?.Kind() == SyntaxKind.TrueLiteralExpression;
+                var exhaustive = IsExhaustive(arguments);
+                var strategy = GetMappingStrategy(arguments);
 
                 if (targetTypeArgument?.Expression is not TypeOfExpressionSyntax typeOfExpressionSyntax) continue;
 
@@ -141,16 +106,35 @@ public class CartographeGenerator : IIncrementalGenerator
         return classMappings;
     }
 
-    private static void GenerateCode(SourceProductionContext context, ImmutableArray<List<TypeMapping>> classDeclarations)
+    private static void GenerateCode(SourceProductionContext context, List<TypeMapping> classMappings)
     {
-        var classMappings = classDeclarations.SelectMany(t => t)
-            .ToList();
-
         foreach (var classMapping in classMappings)
         {
             var generatedMapping = classMapping.GenerateMapping();
             context.AddSource($"{classMapping.SourceClassName}To{classMapping.TargetClassName}.g.cs",
                 SourceText.From(generatedMapping, Encoding.UTF8));
         }
+    }
+
+    private static MappingStrategyInternal GetMappingStrategy(SeparatedSyntaxList<AttributeArgumentSyntax>? arguments)
+    {
+        var strategy = arguments?
+            .SingleOrDefault(arg => arg.NameEquals?.Name.ToString() == "MappingStrategy")
+            ?.Expression as MemberAccessExpressionSyntax;
+
+        return strategy?.Name.ToString() switch
+        {
+            "Constructor" => MappingStrategyInternal.Constructor,
+            _ => MappingStrategyInternal.Setter
+        };
+    }
+
+    private static bool IsExhaustive(SeparatedSyntaxList<AttributeArgumentSyntax>? arguments)
+    {
+        var exhaustiveArgument = arguments?
+            .SingleOrDefault(arg => arg.NameEquals?.Name.ToString() == "Exhaustive")?
+            .Expression as LiteralExpressionSyntax;
+
+        return exhaustiveArgument?.Kind() == SyntaxKind.TrueLiteralExpression;
     }
 }
