@@ -1,4 +1,4 @@
-using Generators;
+using CartographeAutomatique;
 
 namespace CartographeAutomatique.Samples.CustomMethodMapping;
 
@@ -7,7 +7,6 @@ public class AddressNumber
 {
     [Mapping(With = "float.Parse")]
     public string? Value { get; set; }
-
 }
 
 public class StreetNumber
@@ -20,14 +19,10 @@ public class CustomMethodMapping
     [Fact]
     void Should_map_with_custom_method()
     {
-        var address = new AddressNumber()
-        {
-            Value = "41",
-        };
+        var address = new AddressNumber() { Value = "41" };
 
         var streetNumber = address.MapToStreetNumber();
 
         Assert.Equal(41, streetNumber.Value);
     }
 }
-

@@ -1,4 +1,4 @@
-using Generators;
+using CartographeAutomatique;
 
 namespace CartographeAutomatique.Samples.SimpleFromMapping;
 

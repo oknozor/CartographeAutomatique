@@ -1,4 +1,4 @@
-using Generators;
+using CartographeAutomatique;
 
 namespace CartographeAutomatique.Tests.Samples.ClassToRecordMapping;
 
@@ -16,11 +16,7 @@ public class ClassToRecordMapping
     [Fact]
     void Should_map_record_to_class()
     {
-        var truck = new Truck()
-        {
-            Color = "Red",
-            Brand = "Peugeot"
-        };
+        var truck = new Truck() { Color = "Red", Brand = "Peugeot" };
 
         truck.MapToCar();
     }

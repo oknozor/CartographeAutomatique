@@ -1,6 +1,6 @@
 namespace CartographeAutomatique.Samples.RecursiveListMapping;
 
-using Generators;
+using CartographeAutomatique;
 
 [MapTo(typeof(B))]
 public class A
@@ -20,13 +20,16 @@ public class RecursiveListMapping
     {
         var a = new A
         {
-            Names = [[["Riri", "Fifi", "Loulou"]]]
+            Names =
+            [
+                [
+                    ["Riri", "Fifi", "Loulou"],
+                ],
+            ],
         };
 
         var b = a.MapToB();
-        var names = b.Names
-            .SelectMany(t => t.SelectMany(t => t))
-            .ToArray();
+        var names = b.Names.SelectMany(t => t.SelectMany(t => t)).ToArray();
 
         Assert.Equal(["Riri", "Fifi", "Loulou"], names);
     }

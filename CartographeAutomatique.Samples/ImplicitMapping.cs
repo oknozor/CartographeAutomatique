@@ -1,12 +1,11 @@
 using System.Globalization;
-using Generators;
+using CartographeAutomatique;
 
 namespace CartographeAutomatique.Samples.ImplicitMapping;
 
 [MapTo(typeof(Point))]
 public class Vector3
 {
-
     public float X { get; set; }
     public int Y { get; set; }
     public string? Z { get; set; }

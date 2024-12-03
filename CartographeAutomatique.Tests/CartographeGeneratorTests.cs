@@ -13,77 +13,99 @@ public record SourceGenerationOutput(string GeneratedFileName, string ExpectedSo
 public class CartographeGeneratorTests
 {
     [Fact]
-    public void GenerateSimpleMapping() => CodeGenerationAssertion(new ClassToClass().GetAssertion());
+    public void GenerateSimpleMapping() =>
+        CodeGenerationAssertion(new ClassToClass().GetAssertion());
 
     [Fact]
-    public void GenerateNonExhaustiveMapping() => CodeGenerationAssertion(new NonExhaustive().GetAssertion());
+    public void GenerateNonExhaustiveMapping() =>
+        CodeGenerationAssertion(new NonExhaustive().GetAssertion());
 
     [Fact]
-    public void GenerateMultipleMappingOnSameClass() => CodeGenerationAssertion(new MutlipleMapping().GetAssertion());
+    public void GenerateMultipleMappingOnSameClass() =>
+        CodeGenerationAssertion(new MutlipleMapping().GetAssertion());
 
     [Fact]
-    public void GenerateRecursiveMappingCode() => CodeGenerationAssertion(new Recursive().GetAssertion());
+    public void GenerateRecursiveMappingCode() =>
+        CodeGenerationAssertion(new Recursive().GetAssertion());
 
     [Fact]
-    public void GenerateFieldMappingCode() => CodeGenerationAssertion(new FieldMapping().GetAssertion());
+    public void GenerateFieldMappingCode() =>
+        CodeGenerationAssertion(new FieldMapping().GetAssertion());
 
     [Fact]
-    public void GenerateImplicitFieldMappingCode() => CodeGenerationAssertion(new FieldMappingImplicit().GetAssertion());
+    public void GenerateImplicitFieldMappingCode() =>
+        CodeGenerationAssertion(new FieldMappingImplicit().GetAssertion());
 
     [Fact]
-    public void GenerateRecordToClassMappingCode() => CodeGenerationAssertion(new RecordToClass().GetAssertion());
+    public void GenerateRecordToClassMappingCode() =>
+        CodeGenerationAssertion(new RecordToClass().GetAssertion());
 
     [Fact]
-    public void GenerateClassToRecordMappingCode() => CodeGenerationAssertion(new ClassToRecord().GetAssertion());
+    public void GenerateClassToRecordMappingCode() =>
+        CodeGenerationAssertion(new ClassToRecord().GetAssertion());
 
     [Fact]
-    public void GenerateRecordToRecordMappingCode() => CodeGenerationAssertion(new RecordToRecord().GetAssertion());
+    public void GenerateRecordToRecordMappingCode() =>
+        CodeGenerationAssertion(new RecordToRecord().GetAssertion());
 
     [Fact]
-    public void GenerateMultipleFieldMappings() => CodeGenerationAssertion(new MultipleFieldMapping().GetAssertion());
+    public void GenerateMultipleFieldMappings() =>
+        CodeGenerationAssertion(new MultipleFieldMapping().GetAssertion());
 
     [Fact]
-    public void GenerateConstructorClassMapping() => CodeGenerationAssertion(new ConstructorClassToClass().GetAssertion());
+    public void GenerateConstructorClassMapping() =>
+        CodeGenerationAssertion(new ConstructorClassToClass().GetAssertion());
 
     [Fact]
-    public void GenerateConstructorCustomMethodMapping() => CodeGenerationAssertion(new CustomMethodMapping().GetAssertion());
+    public void GenerateConstructorCustomMethodMapping() =>
+        CodeGenerationAssertion(new CustomMethodMapping().GetAssertion());
 
     [Fact]
-    public void GenerateImplicitMapping() => CodeGenerationAssertion(new ImplicitMapping().GetAssertion());
+    public void GenerateImplicitMapping() =>
+        CodeGenerationAssertion(new ImplicitMapping().GetAssertion());
 
     [Fact]
-    public void GenerateListToListMapping() => CodeGenerationAssertion(new ListToList().GetAssertion());
+    public void GenerateListToListMapping() =>
+        CodeGenerationAssertion(new ListToList().GetAssertion());
 
     [Fact]
-    public void GenerateListToArrayMapping() => CodeGenerationAssertion(new ListToArrayMapping().GetAssertion());
+    public void GenerateListToArrayMapping() =>
+        CodeGenerationAssertion(new ListToArrayMapping().GetAssertion());
 
     [Fact]
-    public void GenerateRecursiveListMapping() => CodeGenerationAssertion(new RecursiveListMapping().GetAssertion());
+    public void GenerateRecursiveListMapping() =>
+        CodeGenerationAssertion(new RecursiveListMapping().GetAssertion());
 
     [Fact]
-    public void GenerateFromMapping() => CodeGenerationAssertion(new SimpleFromClassMapping().GetAssertion());
-
+    public void GenerateFromMapping() =>
+        CodeGenerationAssertion(new SimpleFromClassMapping().GetAssertion());
 
     private static void CodeGenerationAssertion(SourceGenerationAssertion assertion)
     {
         var generator = new CartographeGenerator();
         var driver = CSharpGeneratorDriver.Create(generator);
-        var compilation = CSharpCompilation.Create(nameof(CartographeGeneratorTests),
+        var compilation = CSharpCompilation.Create(
+            nameof(CartographeGeneratorTests),
             [CSharpSyntaxTree.ParseText(assertion.InputSource)],
-            [
-                MetadataReference.CreateFromFile(typeof(object).Assembly.Location)
-            ]);
+            [MetadataReference.CreateFromFile(typeof(object).Assembly.Location)]
+        );
 
         var runResult = driver.RunGenerators(compilation).GetRunResult();
 
         foreach (var sourceGenerationOutput in assertion.Outputs)
         {
-            var actual = runResult.GeneratedTrees
-                .Single(t => t.FilePath.EndsWith($"{sourceGenerationOutput.GeneratedFileName}.g.cs"))
+            var actual = runResult
+                .GeneratedTrees.Single(t =>
+                    t.FilePath.EndsWith($"{sourceGenerationOutput.GeneratedFileName}.g.cs")
+                )
                 .GetText()
                 .ToString();
 
-            Assert.Equal(sourceGenerationOutput.ExpectedSource, actual, ignoreLineEndingDifferences: true);
+            Assert.Equal(
+                sourceGenerationOutput.ExpectedSource,
+                actual,
+                ignoreLineEndingDifferences: true
+            );
         }
     }
 }

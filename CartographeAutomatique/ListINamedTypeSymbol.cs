@@ -13,8 +13,8 @@ public interface ICollection1Symbol
 
 public static class TypeExtensions
 {
-    public static bool SameAs(this ICollection1Symbol self, ICollection1Symbol other)
-        => self.HasSameOuterType(other) && self.HasSameInnerType(other);
+    public static bool SameAs(this ICollection1Symbol self, ICollection1Symbol other) =>
+        self.HasSameOuterType(other) && self.HasSameInnerType(other);
 }
 
 public class UnknownTypeSymbol(INamedTypeSymbol innerTypeSymbol) : ICollection1Symbol
@@ -37,7 +37,8 @@ public class UnknownTypeSymbol(INamedTypeSymbol innerTypeSymbol) : ICollection1S
 
     public bool HasSameOuterType(ICollection1Symbol other) => false;
 
-    public bool HasSameInnerType(ICollection1Symbol other) => other.InnerTypeSymbol().Name == InnerTypeSymbol().Name;
+    public bool HasSameInnerType(ICollection1Symbol other) =>
+        other.InnerTypeSymbol().Name == InnerTypeSymbol().Name;
 }
 
 public class Array1Symbol(ITypeSymbol innerTypeSymbol) : ICollection1Symbol
@@ -57,34 +58,43 @@ public class Array1Symbol(ITypeSymbol innerTypeSymbol) : ICollection1Symbol
 
     public bool HasSameOuterType(ICollection1Symbol other) => other.IsArray();
 
-    public bool HasSameInnerType(ICollection1Symbol other) => InnerTypeSymbol().Name == other.InnerTypeSymbol().Name &&
-                                                              InnerTypeSymbol().ContainingNamespace.Name ==
-                                                              other.InnerTypeSymbol().ContainingNamespace.Name;
+    public bool HasSameInnerType(ICollection1Symbol other) =>
+        InnerTypeSymbol().Name == other.InnerTypeSymbol().Name
+        && InnerTypeSymbol().ContainingNamespace.Name
+            == other.InnerTypeSymbol().ContainingNamespace.Name;
 }
 
-public class Collection1Symbol(ITypeSymbol? outerTypeSymbol, ITypeSymbol innerTypeSymbol) : ICollection1Symbol
+public class Collection1Symbol(ITypeSymbol? outerTypeSymbol, ITypeSymbol innerTypeSymbol)
+    : ICollection1Symbol
 {
     public static ICollection1Symbol? FromTypeSymbol(ITypeSymbol symbol)
     {
-        if (symbol is not INamedTypeSymbol namedTypeSymbol) return null;
+        if (symbol is not INamedTypeSymbol namedTypeSymbol)
+            return null;
         var innerTypeSymbol = namedTypeSymbol.FirstGenericParameterName();
 
         if (innerTypeSymbol != null)
-            return !namedTypeSymbol.IsCollection() ? null : new Collection1Symbol(namedTypeSymbol, innerTypeSymbol);
+            return !namedTypeSymbol.IsCollection()
+                ? null
+                : new Collection1Symbol(namedTypeSymbol, innerTypeSymbol);
 
         return null;
     }
 
     public bool IsArray() => false;
+
     public ITypeSymbol InnerTypeSymbol() => innerTypeSymbol;
+
     public ITypeSymbol? OuterTypeSymbol() => outerTypeSymbol;
 
     public bool HasSameOuterType(ICollection1Symbol other) =>
         !other.IsArray()
         && OuterTypeSymbol()?.Name == other.OuterTypeSymbol()!.Name
-        && OuterTypeSymbol()?.ContainingNamespace.Name == other.OuterTypeSymbol()!.ContainingNamespace.Name;
+        && OuterTypeSymbol()?.ContainingNamespace.Name
+            == other.OuterTypeSymbol()!.ContainingNamespace.Name;
 
-    public bool HasSameInnerType(ICollection1Symbol other)
-        => InnerTypeSymbol().Name == other.InnerTypeSymbol().Name
-           && InnerTypeSymbol().ContainingNamespace.Name == other.InnerTypeSymbol().ContainingNamespace.Name;
+    public bool HasSameInnerType(ICollection1Symbol other) =>
+        InnerTypeSymbol().Name == other.InnerTypeSymbol().Name
+        && InnerTypeSymbol().ContainingNamespace.Name
+            == other.InnerTypeSymbol().ContainingNamespace.Name;
 }

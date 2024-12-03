@@ -1,4 +1,4 @@
-using Generators;
+using CartographeAutomatique;
 using Xunit;
 
 namespace CartographeAutomatique.Tests.Samples.RecursiveMapping;
@@ -9,7 +9,6 @@ public class Line3
     public Point3? A { get; set; }
     public Point3? B { get; set; }
 }
-
 
 public class Line2
 {
@@ -38,8 +37,18 @@ public class RecursiveMapping
     {
         var line3 = new Line3
         {
-            A = new Point3 { X = 1, Y = 1, Z = 3 },
-            B = new Point3 { X = 5, Y = 4, Z = 6 },
+            A = new Point3
+            {
+                X = 1,
+                Y = 1,
+                Z = 3,
+            },
+            B = new Point3
+            {
+                X = 5,
+                Y = 4,
+                Z = 6,
+            },
         };
 
         Line2 line = line3.MapToLine2();

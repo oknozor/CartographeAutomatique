@@ -1,14 +1,14 @@
-using Generators;
+using CartographeAutomatique;
 using Xunit;
 
 namespace CartographeAutomatique.Tests.Samples.RecordToRecordMapping;
 
-
 [MapTo(typeof(HexColor))]
-public record Color([Mapping(TargetType = typeof(HexColor), TargetField = "HexValue")] string Value);
+public record Color(
+    [Mapping(TargetType = typeof(HexColor), TargetField = "HexValue")] string Value
+);
 
 public record HexColor(string HexValue);
-
 
 public class RecordToRecordMapping
 {

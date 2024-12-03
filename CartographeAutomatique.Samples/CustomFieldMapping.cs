@@ -1,4 +1,4 @@
-using Generators;
+using CartographeAutomatique;
 using Xunit;
 
 namespace CartographeAutomatique.Tests.Samples.CustomFieldMapping;
@@ -20,10 +20,7 @@ public class CustomFieldMapping
     [Fact]
     void Should_generate_field_mappings()
     {
-        var author = new Author()
-        {
-            Name = "Jean Philippe Jaworsky"
-        };
+        var author = new Author() { Name = "Jean Philippe Jaworsky" };
 
         var songWriter = author.MapToSongWriter();
 

@@ -1,13 +1,18 @@
-using Generators;
+using CartographeAutomatique;
 
 namespace CartographeAutomatique.Samples.ConstructorClassMapping;
 
 [MapTo(typeof(Point), MappingStrategy = MappingStrategy.Constructor)]
 public class Vector
 {
-    [Mapping(TargetField = "x")] public float X { get; set; }
-    [Mapping(TargetField = "y")] public float Y { get; set; }
-    [Mapping(TargetField = "z")] public float Z { get; set; }
+    [Mapping(TargetField = "x")]
+    public float X { get; set; }
+
+    [Mapping(TargetField = "y")]
+    public float Y { get; set; }
+
+    [Mapping(TargetField = "z")]
+    public float Z { get; set; }
 }
 
 public class Point

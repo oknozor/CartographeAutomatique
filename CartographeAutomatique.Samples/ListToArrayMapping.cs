@@ -1,6 +1,6 @@
 namespace CartographeAutomatique.Samples.ListToArrayMapping;
 
-using Generators;
+using CartographeAutomatique;
 
 [MapTo(typeof(Person))]
 public class NameList
@@ -13,16 +13,12 @@ public class Person
     public required string[] Names { get; set; }
 }
 
-
 public class ListToArrayMapping
 {
     [Fact]
     void Should_generate_mappings()
     {
-        var a = new NameList()
-        {
-            Names = ["Riri", "Fifi", "Loulou"]
-        };
+        var a = new NameList() { Names = ["Riri", "Fifi", "Loulou"] };
 
         Person b = a.MapToPerson();
 

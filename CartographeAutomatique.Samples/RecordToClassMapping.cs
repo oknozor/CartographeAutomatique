@@ -1,4 +1,4 @@
-using Generators;
+using CartographeAutomatique;
 using Xunit;
 
 namespace CartographeAutomatique.Tests.Samples;

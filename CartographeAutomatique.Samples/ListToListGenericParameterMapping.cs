@@ -1,6 +1,6 @@
 namespace CartographeAutomatique.Samples.ListToListGenericParameterMapping;
 
-using Generators;
+using CartographeAutomatique;
 
 [MapTo(typeof(Article))]
 public class Fruit
@@ -32,17 +32,7 @@ public class ListToListGenericParameterMapping
     {
         var garden = new Garden()
         {
-            Fruits =
-            [
-                new Fruit()
-                {
-                    Name = "Apple",
-                },
-                new Fruit()
-                {
-                    Name = "Pear",
-                }
-            ]
+            Fruits = [new Fruit() { Name = "Apple" }, new Fruit() { Name = "Pear" }],
         };
 
         Basket basket = garden.MapToBasket();

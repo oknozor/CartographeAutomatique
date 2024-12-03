@@ -1,4 +1,4 @@
-using Generators;
+using CartographeAutomatique;
 
 namespace CartographeAutomatique.Samples;
 
@@ -7,7 +7,7 @@ namespace CartographeAutomatique.Samples;
 public record Vehicle(
     [Mapping(TargetType = typeof(Truck), TargetField = "TruckColor")]
     [Mapping(TargetType = typeof(Bike), TargetField = "BikeColor")]
-    string Color,
+        string Color,
     string Brand
 );
 
