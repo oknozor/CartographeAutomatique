@@ -1,6 +1,4 @@
-using CartographeAutomatique;
-
-namespace CartographeAutomatique.Samples;
+namespace CartographeAutomatique.Samples.MultipleTargetFieldMapping;
 
 [MapTo(typeof(Truck))]
 [MapTo(typeof(Bike))]
@@ -15,13 +13,13 @@ public class Truck
 {
     public string? TruckColor { get; set; }
     public string? Brand { get; set; }
-};
+}
 
 public class Bike
 {
     public string? BikeColor { get; set; }
     public string? Brand { get; set; }
-};
+}
 
 public class MultipleTargetFieldMapping
 {

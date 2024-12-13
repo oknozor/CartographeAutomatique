@@ -59,39 +59,39 @@ public class CartographeGenerator : IIncrementalGenerator
         var classMappings = new List<TypeMapping>();
 
         foreach (var attributeListSyntax in typeDeclarationSyntax.AttributeLists)
-        foreach (
-            var arguments in from attributeSyntax in attributeListSyntax.Attributes
-            select attributeSyntax.ArgumentList?.Arguments
-        )
-        {
-            var targetTypeArgument = arguments?.FirstOrDefault();
-            var exhaustive = IsExhaustive(arguments);
-            var strategy = GetMappingStrategy(arguments);
+            foreach (
+                var arguments in from attributeSyntax in attributeListSyntax.Attributes
+                                 select attributeSyntax.ArgumentList?.Arguments
+            )
+            {
+                var targetTypeArgument = arguments?.FirstOrDefault();
+                var exhaustive = IsExhaustive(arguments);
+                var strategy = GetMappingStrategy(arguments);
 
-            if (targetTypeArgument?.Expression is not TypeOfExpressionSyntax typeOfExpressionSyntax)
-                continue;
+                if (targetTypeArgument?.Expression is not TypeOfExpressionSyntax typeOfExpressionSyntax)
+                    continue;
 
-            var targetIdentifierName = typeOfExpressionSyntax.Type as IdentifierNameSyntax;
-            var targetSymbolInfo = ModelExtensions.GetSymbolInfo(
-                context.SemanticModel,
-                targetIdentifierName!
-            );
-            var targetTypeSyntax = targetSymbolInfo.TypeDeclarationSyntaxFromSymbolInfo();
+                var targetIdentifierName = typeOfExpressionSyntax.Type as IdentifierNameSyntax;
+                var targetSymbolInfo = ModelExtensions.GetSymbolInfo(
+                    context.SemanticModel,
+                    targetIdentifierName!
+                );
+                var targetTypeSyntax = targetSymbolInfo.TypeDeclarationSyntaxFromSymbolInfo();
 
-            if (targetTypeSyntax is null)
-                continue;
+                if (targetTypeSyntax is null)
+                    continue;
 
-            classMappings.Add(
-                new TypeMapping(
-                    mappingKind,
-                    typeDeclarationSyntax,
-                    targetTypeSyntax,
-                    exhaustive,
-                    strategy,
-                    context
-                )
-            );
-        }
+                classMappings.Add(
+                    new TypeMapping(
+                        mappingKind,
+                        typeDeclarationSyntax,
+                        targetTypeSyntax,
+                        exhaustive,
+                        strategy,
+                        context
+                    )
+                );
+            }
 
         return classMappings;
     }
@@ -108,9 +108,9 @@ public class CartographeGenerator : IIncrementalGenerator
             var sourceFileName = mappingKind switch
             {
                 MappingKind.MapTo =>
-                    $"{classMapping.SourceClassName}To{classMapping.TargetClassName}.g.cs",
+                    $"{classMapping.SourceNameSpace()}_{classMapping.SourceClassName}To{classMapping.TargetNameSpace()}_{classMapping.TargetClassName}.g.cs",
                 MappingKind.MapFrom =>
-                    $"{classMapping.SourceClassName}From{classMapping.TargetClassName}.g.cs",
+                    $"{classMapping.SourceNameSpace()}_{classMapping.SourceClassName}From{classMapping.TargetNameSpace()}_{classMapping.TargetClassName}.g.cs",
                 _ => throw new ArgumentOutOfRangeException(nameof(mappingKind), mappingKind, null),
             };
 

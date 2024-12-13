@@ -39,5 +39,5 @@ public class RecursiveListMapping : IFixture
             """;
 
     public SourceGenerationAssertion GetAssertion() =>
-        new(Source, [new SourceGenerationOutput("AToB", ExpectedMapping)]);
+        new(Source, [new SourceGenerationOutput("TestNamespace_AToTestNamespace_B", ExpectedMapping)]);
 }

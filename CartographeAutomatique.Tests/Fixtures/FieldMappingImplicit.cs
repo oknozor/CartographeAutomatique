@@ -38,5 +38,5 @@ public class FieldMappingImplicit
             """;
 
     public SourceGenerationAssertion GetAssertion() =>
-        new(Source, [new("AuthorToSongWriter", Expected)]);
+        new(Source, [new("TestNamespace_AuthorToTestNamespace_SongWriter", Expected)]);
 }

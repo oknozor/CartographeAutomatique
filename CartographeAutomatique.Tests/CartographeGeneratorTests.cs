@@ -80,6 +80,11 @@ public class CartographeGeneratorTests
     public void GenerateFromMapping() =>
         CodeGenerationAssertion(new SimpleFromClassMapping().GetAssertion());
 
+
+    [Fact]
+    public void GenerateDocSample() =>
+        CodeGenerationAssertion(new DocSample().GetAssertion());
+
     private static void CodeGenerationAssertion(SourceGenerationAssertion assertion)
     {
         var generator = new CartographeGenerator();

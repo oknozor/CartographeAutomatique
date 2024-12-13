@@ -28,5 +28,5 @@ public class RecordToRecord : IFixture
             """;
 
     public SourceGenerationAssertion GetAssertion() =>
-        new(Source, [new("ColorToHexColor", Expected)]);
+        new(Source, [new("TestNamespace_ColorToTestNamespace_HexColor", Expected)]);
 }

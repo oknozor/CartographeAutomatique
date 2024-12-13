@@ -43,5 +43,5 @@ public class SimpleFromClassMapping : IFixture
             """;
 
     public SourceGenerationAssertion GetAssertion() =>
-        new(Source, [new SourceGenerationOutput("PointToVector3", Expected)]);
+        new(Source, [new SourceGenerationOutput("TestNamespace_PointToTestNamespace_Vector3", Expected)]);
 }

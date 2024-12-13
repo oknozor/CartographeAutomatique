@@ -148,10 +148,10 @@ internal class TypeMapping(
     )
     {
         if (
-            targetType is not ClassDeclarationSyntax targetClass
+            TargetType() is not ClassDeclarationSyntax targetClass
             || activeStrategy != MappingStrategyInternal.Constructor
         )
-            return targetType switch
+            return TargetType() switch
             {
                 ClassDeclarationSyntax classDeclaration => classDeclaration
                     .Members.OfType<PropertyDeclarationSyntax>()
@@ -160,7 +160,7 @@ internal class TypeMapping(
                         targetParameter.Identifier.Text
                     ))
                     .SingleOrDefault(targetProperty =>
-                        targetProperty.Identifier == targetFieldName
+                        targetProperty.Identifier.CamelCaseEquals(targetFieldName)
                     ),
 
                 RecordDeclarationSyntax recordDeclaration => recordDeclaration
@@ -169,7 +169,7 @@ internal class TypeMapping(
                         targetParameter.Identifier.Text
                     ))
                     .SingleOrDefault(targetParameter =>
-                        targetParameter.Identifier == targetFieldName
+                        targetParameter.Identifier.CamelCaseEquals(targetFieldName)
                     ),
                 _ => throw new ArgumentOutOfRangeException(),
             };
@@ -184,7 +184,7 @@ internal class TypeMapping(
                     targetParameter.Type,
                     targetParameter.Identifier.Text
                 ))
-                .SingleOrDefault(targetParameter => targetParameter.Identifier == targetFieldName);
+                .SingleOrDefault(targetParameter => targetParameter.Identifier.CamelCaseEquals(targetFieldName));
         }
     }
 
@@ -218,7 +218,7 @@ internal class TypeMapping(
             _ => throw new ArgumentOutOfRangeException(nameof(SourceType), SourceType(), null),
         };
 
-    private string? TargetNameSpace()
+    public string? TargetNameSpace()
     {
         return
             context.SemanticModel.GetDeclaredSymbol(targetType)
@@ -227,7 +227,7 @@ internal class TypeMapping(
             : sourceClassSymbol.ContainingNamespace.ToDisplayString();
     }
 
-    private string? SourceNameSpace()
+    public string? SourceNameSpace()
     {
         return
             context.SemanticModel.GetDeclaredSymbol(SourceType())

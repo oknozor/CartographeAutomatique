@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -25,9 +26,9 @@ public static class SyntaxHelpers
                 && x.ArgumentList.Arguments.Any(arg =>
                     arg.Expression
                         is TypeOfExpressionSyntax
-                        {
-                            Type: IdentifierNameSyntax identifierNameSyntax
-                        }
+                    {
+                        Type: IdentifierNameSyntax identifierNameSyntax
+                    }
                     && identifierNameSyntax.Identifier.Text == targetClassName
                 )
             ),
@@ -53,9 +54,9 @@ public static class SyntaxHelpers
                 && x.ArgumentList.Arguments.Any(arg =>
                     arg.Expression
                         is TypeOfExpressionSyntax
-                        {
-                            Type: IdentifierNameSyntax identifierNameSyntax
-                        }
+                    {
+                        Type: IdentifierNameSyntax identifierNameSyntax
+                    }
                     && identifierNameSyntax.Identifier.Text == targetClassName
                 )
             ),
@@ -186,4 +187,13 @@ public static class SyntaxHelpers
 
     public static ITypeSymbol? FirstGenericParameterName(this INamedTypeSymbol targetSymbol) =>
         targetSymbol.TypeArguments.FirstOrDefault();
+
+    public static bool CamelCaseEquals(this string src, string other)
+    {
+        if (src.Length != other.Length)
+            return false;
+
+        return char.ToLowerInvariant(src[0]).Equals(char.ToLowerInvariant(other[0])) &&
+               string.Equals(src.Substring(1), other.Substring(1), StringComparison.Ordinal);
+    }
 }

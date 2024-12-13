@@ -11,9 +11,9 @@ public class ConstructorClassToClass
             [MapTo(typeof(Point), MappingStrategy = MappingStrategy.Constructor)]
             public class Vector
             {
-                [Mapping(TargetField = "x")] public float X { get; set; }
-                [Mapping(TargetField = "y")] public float Y { get; set; }
-                [Mapping(TargetField = "z")] public float Z { get; set; }
+                public float X { get; set; }
+                public float Y { get; set; }
+                public float Z { get; set; }
             }
 
             public class Point
@@ -45,5 +45,5 @@ public class ConstructorClassToClass
             """;
 
     public SourceGenerationAssertion GetAssertion() =>
-        new(Source, [new SourceGenerationOutput("VectorToPoint", Expected)]);
+        new(Source, [new SourceGenerationOutput("TestNamespace_VectorToTestNamespace_Point", Expected)]);
 }

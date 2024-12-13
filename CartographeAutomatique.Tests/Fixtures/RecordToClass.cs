@@ -34,5 +34,5 @@ public class RecordToClass : IFixture
             }
             """;
 
-    public SourceGenerationAssertion GetAssertion() => new(Source, [new("CarToTruck", Expected)]);
+    public SourceGenerationAssertion GetAssertion() => new(Source, [new("TestNamespace_CarToTestNamespace_Truck", Expected)]);
 }

@@ -43,5 +43,5 @@ public class ClassToClass : IFixture
             """;
 
     public SourceGenerationAssertion GetAssertion() =>
-        new(Source, [new SourceGenerationOutput("Vector3ToPoint", Expected)]);
+        new(Source, [new SourceGenerationOutput("TestNamespace_Vector3ToTestNamespace_Point", Expected)]);
 }

@@ -48,7 +48,7 @@ public class ImplicitMapping
     {
         return new SourceGenerationAssertion(
             Source,
-            [new SourceGenerationOutput("Vector3ToPoint", Expected)]
+            [new SourceGenerationOutput("TestNamespace_Vector3ToTestNamespace_Point", Expected)]
         );
     }
 }

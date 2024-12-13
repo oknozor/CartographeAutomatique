@@ -46,5 +46,5 @@ public class CustomMethodMapping
             """;
 
     public SourceGenerationAssertion GetAssertion() =>
-        new(Source, [new SourceGenerationOutput("AddressNumberToStreetNumber", Expected)]);
+        new(Source, [new SourceGenerationOutput("TestNamespace_AddressNumberToTestNamespace_StreetNumber", Expected)]);
 }

@@ -40,5 +40,5 @@ public class NonExhaustive : IFixture
             """;
 
     public SourceGenerationAssertion GetAssertion() =>
-        new(Source, [new SourceGenerationOutput("Vector3ToPoint2", Expected)]);
+        new(Source, [new SourceGenerationOutput("TestNamespace_Vector3ToTestNamespace_Point2", Expected)]);
 }

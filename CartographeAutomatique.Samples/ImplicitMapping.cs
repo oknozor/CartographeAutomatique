@@ -1,7 +1,7 @@
+namespace CartographeAutomatique.Samples.ImplicitMapping;
+
 using System.Globalization;
 using CartographeAutomatique;
-
-namespace CartographeAutomatique.Samples.ImplicitMapping;
 
 [MapTo(typeof(Point))]
 public class Vector3

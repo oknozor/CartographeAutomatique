@@ -75,8 +75,8 @@ public class Recursive : IFixture
         new(
             Source,
             [
-                new("Line3ToLine2", ExpectedLine3ToLine2),
-                new("Point3ToPoint2", ExpectedPoint3ToPoint2),
+                new("TestNamespace_Line3ToTestNamespace_Line2", ExpectedLine3ToLine2),
+                new("TestNamespace_Point3ToTestNamespace_Point2", ExpectedPoint3ToPoint2),
             ]
         );
 }

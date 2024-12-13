@@ -73,8 +73,8 @@ public class ListToList : IFixture
         new(
             Source,
             [
-                new SourceGenerationOutput("FruitToArticle", ExpectedFruitMapping),
-                new SourceGenerationOutput("GardenToBasket", ExpectedBasketMapping),
+                new SourceGenerationOutput("TestNamespace_FruitToTestNamespace_Article", ExpectedFruitMapping),
+                new SourceGenerationOutput("TestNamespace_GardenToTestNamespace_Basket", ExpectedBasketMapping),
             ]
         );
 }
