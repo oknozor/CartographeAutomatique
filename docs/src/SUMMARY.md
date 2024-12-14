@@ -1,7 +1,6 @@
 # Summary
 
 - [Introduction](./introduction.md)
-- [Setup](./setup.md)
 - [Defining a mapper](./mapper.md)
 - [Mapping target](./mapping-target.md)
 - [Custom mapping method](./custom-method.md)
