@@ -5,7 +5,7 @@ namespace CartographeAutomatique.Samples.MultipleTargetFieldMapping;
 public record Vehicle(
     [Mapping(TargetType = typeof(Truck), TargetField = "TruckColor")]
     [Mapping(TargetType = typeof(Bike), TargetField = "BikeColor")]
-        string Color,
+    string Color,
     string Brand
 );
 
