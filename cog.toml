@@ -1,0 +1,24 @@
+#:schema https://docs.cocogitto.io/cog-schema.json
+ignore_merge_commits = true
+
+branch_whitelist = ["main"]
+pre_bump_hooks = [
+    "dotnet build",
+    "dotnet test",
+    "dotnet pack CartographeAutomatique -p:Version={{version}} -c Release"
+]
+
+post_bump_hooks = [
+    "git push",
+    "git push origin {{version}}",
+]
+
+[changelog]
+path = "CHANGELOG.md"
+template = "remote"
+remote = "github.com"
+repository = "CartographeAutomatique"
+owner = "cocogitto"
+authors = [
+    { signature = "Paul Delafosse", username = "oknozor" },
+]

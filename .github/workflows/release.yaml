@@ -1,0 +1,57 @@
+name: Release
+
+on:
+  workflow_dispatch:
+
+jobs:
+  release:
+    name: SemVer release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{secrets.RELEASE_TOKEN}}
+
+      - run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git config --global user.email github-actions@github.com
+          git config --global user.name github-actions
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Dotnet login
+        run: dotnet nuget add source --username oknozor --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text --name github "https://nuget.pkg.github.com/oknozor/index.json"
+      
+      - name: SemVer release
+        id: release
+        uses: cocogitto/cocogitto-action@v3.5
+        with:
+          check-latest-tag-only: true
+          release: true
+          git-user: 'github-actions'
+          git-user-email: 'github-actions@github.com'
+
+      - name: Push nuget
+        run: dotnet nuget push "CartographeAutomatique/bin/Release/CartographeAutomatique.${{ steps.release.outputs.version }}.nupkg" --api-key ${{secrets.RELEASE_TOKEN}} --source "github"
+      
+      - name: Upload NuGet package to GitHub
+        uses: actions/upload-artifact@v3.1.3
+        with:
+          name: nugetPackage
+          path: bin/Release/*.nupkg
+          
+      - name: Generate Changelog
+        run: cog changelog --at ${{ steps.release.outputs.version }} -t full_hash > GITHUB_CHANGELOG.md
+
+      - name: Upload github release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: CartographeAutomatique/bin/Release/CartographeAutomatique.${{ steps.release.outputs.version }}.nupkg
+          body_path: GITHUB_CHANGELOG.md
+          tag_name: ${{ steps.release.outputs.version }}
+          token: ${{secrets.RELEASE_TOKEN}}
