@@ -2,20 +2,21 @@
 
     <PropertyGroup>
         <TargetFrameworks>net8.0;</TargetFrameworks>
-        <IsPackable>false</IsPackable>
+        <IsPackable>true</IsPackable>
         <Nullable>enable</Nullable>
+        <Authors>oknozor</Authors>
+        <IncludeSymbols>true</IncludeSymbols>
         <LangVersion>latest</LangVersion>
-
         <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
         <IsRoslynComponent>true</IsRoslynComponent>
-
         <RootNamespace>CartographeAutomatique</RootNamespace>
         <PackageId>CartographeAutomatique</PackageId>
         <RepositoryUrl>https://github.com/oknozor/CartographeAutomatique</RepositoryUrl>
-        <IsPackable>true</IsPackable>
+        <IncludeBuildOutput>false</IncludeBuildOutput>
     </PropertyGroup>
 
     <ItemGroup>
+        <None Include="bin/Release/net8.0/$(AssemblyName).dll" Pack="true" PackagePath="lib/net8.0/$(AssemblyName).dll" />
         <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.4">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
