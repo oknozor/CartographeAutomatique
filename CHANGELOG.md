@@ -2,6 +2,13 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## [0.1.2](https://github.com/cocogitto/CartographeAutomatique/compare/0.1.1..0.1.2) - 2024-12-16
+#### Bug Fixes
+- dll to analyzer path - ([732070d](https://github.com/cocogitto/CartographeAutomatique/commit/732070dc26dc2383640bdbbe8d6d27040b3f158d)) - [@oknozor](https://github.com/oknozor)
+- fix analyzer packaging - ([ce2210f](https://github.com/cocogitto/CartographeAutomatique/commit/ce2210f91ef34ea4576b8cad169ac9ec2f932657)) - [@oknozor](https://github.com/oknozor)
+
+- - -
+
 ## [0.1.1](https://github.com/cocogitto/CartographeAutomatique/compare/0.1.0..0.1.1) - 2024-12-16
 #### Bug Fixes
 - use target dotnet 8.0 - ([d650e87](https://github.com/cocogitto/CartographeAutomatique/commit/d650e8751f020d7a4509c471801a297499765988)) - [@oknozor](https://github.com/oknozor)
