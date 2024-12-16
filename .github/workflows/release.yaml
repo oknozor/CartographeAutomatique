@@ -43,7 +43,7 @@ jobs:
         uses: actions/upload-artifact@v3.1.3
         with:
           name: nugetPackage
-          path: bin/Release/*.nupkg
+          path: CartographeAutomatique/bin/Release/CartographeAutomatique.${{ steps.release.outputs.version }}.nupkg
           
       - name: Generate Changelog
         run: cog changelog --at ${{ steps.release.outputs.version }} -t full_hash > GITHUB_CHANGELOG.md
