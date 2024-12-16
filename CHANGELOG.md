@@ -2,6 +2,23 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## [0.1.1](https://github.com/cocogitto/CartographeAutomatique/compare/0.1.0..0.1.1) - 2024-12-16
+#### Bug Fixes
+- use target dotnet 8.0 - ([d650e87](https://github.com/cocogitto/CartographeAutomatique/commit/d650e8751f020d7a4509c471801a297499765988)) - [@oknozor](https://github.com/oknozor)
+#### Continuous Integration
+- fix mdbook path - ([6cb6c96](https://github.com/cocogitto/CartographeAutomatique/commit/6cb6c960c65d2cfc320ba309108931815bf8ec46)) - [@oknozor](https://github.com/oknozor)
+- deploy mdbook - ([79be17d](https://github.com/cocogitto/CartographeAutomatique/commit/79be17dffe8d2382ee8c9ccf11ff7c4bca93f117)) - [@oknozor](https://github.com/oknozor)
+#### Documentation
+- document exhaustive and mapping strategy - ([d1858fd](https://github.com/cocogitto/CartographeAutomatique/commit/d1858fd5ed2b7065c740ec99952364dff2b9088e)) - [@oknozor](https://github.com/oknozor)
+- add link to mdbook - ([b3dc468](https://github.com/cocogitto/CartographeAutomatique/commit/b3dc4683a11b493fc8820427b5ea23132ef07de1)) - [@oknozor](https://github.com/oknozor)
+- add books pages - ([4e92031](https://github.com/cocogitto/CartographeAutomatique/commit/4e92031e0c96185ca7ea73a681ad8eda3dd824f8)) - [@oknozor](https://github.com/oknozor)
+- add badges to readme - ([94dd313](https://github.com/cocogitto/CartographeAutomatique/commit/94dd31327f49a121c9c46dcf06fb1a7624d7ae29)) - [@oknozor](https://github.com/oknozor)
+- add README - ([b9093ed](https://github.com/cocogitto/CartographeAutomatique/commit/b9093edea3e1778d34dee744c20c851a4ac8a47e)) - [@oknozor](https://github.com/oknozor)
+#### Miscellaneous Chores
+- Create LICENSE - ([fdb8170](https://github.com/cocogitto/CartographeAutomatique/commit/fdb8170a84de0b90b1bd4d39cae2696c188bd8ae)) - [@oknozor](https://github.com/oknozor)
+
+- - -
+
 ## [0.1.0](https://github.com/cocogitto/CartographeAutomatique/compare/204e77b5288be02408d7988fc8d17fc3fa91a5c1..0.1.0) - 2024-12-14
 #### Continuous Integration
 - add cocogitto release - ([21fe094](https://github.com/cocogitto/CartographeAutomatique/commit/21fe0942278fc5dedfa8ee199c4f8a153e591ec8)) - [@oknozor](https://github.com/oknozor)
