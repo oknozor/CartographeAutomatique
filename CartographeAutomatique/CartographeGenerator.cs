@@ -57,6 +57,7 @@ public class CartographeGenerator : IIncrementalGenerator
     {
         var typeDeclarationSyntax = (context.TargetNode as TypeDeclarationSyntax)!;
         var classMappings = new List<TypeMapping>();
+        var diagnostics = new List<IntermediateDiagnostic>();
 
         foreach (var attributeListSyntax in typeDeclarationSyntax.AttributeLists)
             foreach (
@@ -79,7 +80,14 @@ public class CartographeGenerator : IIncrementalGenerator
                 var targetTypeSyntax = targetSymbolInfo.TypeDeclarationSyntaxFromSymbolInfo();
 
                 if (targetTypeSyntax is null)
+                {
+                    diagnostics.Add(
+                        new IntermediateDiagnostic(
+                            $"Unable to resolve target type symbol {targetIdentifierName} on {typeDeclarationSyntax.Identifier.Text} mapping"
+                            ));
+                    
                     continue;
+                }
 
                 classMappings.Add(
                     new TypeMapping(
@@ -88,7 +96,8 @@ public class CartographeGenerator : IIncrementalGenerator
                         targetTypeSyntax,
                         exhaustive,
                         strategy,
-                        context
+                        context,
+                        diagnostics
                     )
                 );
             }
@@ -104,7 +113,7 @@ public class CartographeGenerator : IIncrementalGenerator
     {
         foreach (var classMapping in classMappings)
         {
-            var generatedMapping = classMapping.GenerateMapping();
+            var generatedMapping = classMapping.GenerateMapping(context);
             var sourceFileName = mappingKind switch
             {
                 MappingKind.MapTo =>
