@@ -1,24 +1,24 @@
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis;
 
 namespace CartographeAutomatique;
 
 public class PropertyOrParameter(
-    TypeSyntax? type,
+    ITypeSymbol type,
     string identifier,
-    AttributeSyntax? attribute = null
+    AttributeData? attribute = null
 )
 {
-    public TypeSyntax? Type { get; } = type;
+    public ITypeSymbol Type { get; } = type;
     public string Identifier { get; } = identifier;
 
-    public AttributeArgumentSyntax? TargetField() =>
-        attribute?.ArgumentList?.Arguments.FirstOrDefault(arg =>
-            arg.NameEquals?.Name.ToString() == "TargetField"
-        );
+    public string? TargetField() => attribute?.NamedArguments
+        .SingleOrDefault(arg => arg.Key == "TargetField")
+        .Value
+        .Value as string;
 
-    public AttributeArgumentSyntax? WithMethod() =>
-        attribute?.ArgumentList?.Arguments.FirstOrDefault(arg =>
-            arg.NameEquals?.Name.ToString() == "With"
-        );
+    public string? WithMethod() => attribute?.NamedArguments
+        .SingleOrDefault(arg => arg.Key == "With")
+        .Value
+        .Value as string;
 }

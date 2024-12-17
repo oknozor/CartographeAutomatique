@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -89,10 +90,28 @@ public class CartographeGeneratorTests
     {
         var generator = new CartographeGenerator();
         var driver = CSharpGeneratorDriver.Create(generator);
+
+        var referenceComp = CSharpCompilation.Create("test",
+            references: Basic.Reference.Assemblies.Net80.References.All, syntaxTrees:
+            [
+                CSharpSyntaxTree.ParseText("""
+                                           namespace TestNamespace
+                                           {
+                                               public class Point
+                                               {
+                                                   public float X { get; set; }
+                                                   public float Y { get; set; }
+                                                   public float Z { get; set; }
+                                               }
+                                           }
+                                           """)
+            ]);
+
         var compilation = CSharpCompilation.Create(
             nameof(CartographeGeneratorTests),
             [CSharpSyntaxTree.ParseText(assertion.InputSource)],
-            [MetadataReference.CreateFromFile(typeof(object).Assembly.Location)]
+            ImmutableArray<MetadataReference>.CastUp(Basic.Reference.Assemblies.Net80.References.All)
+                .Add(referenceComp.ToMetadataReference())
         );
 
         var runResult = driver.RunGenerators(compilation).GetRunResult();
@@ -114,3 +133,5 @@ public class CartographeGeneratorTests
         }
     }
 }
+
+

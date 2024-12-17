@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -7,79 +8,24 @@ namespace CartographeAutomatique;
 
 public static class SyntaxHelpers
 {
-    public static AttributeSyntax? GetMatchingMappingAttribute(
-        this MemberDeclarationSyntax memberDeclarationSyntax,
+    public static AttributeData? GetMatchingMappingAttribute(
+        this IEnumerable<AttributeData> attributes,
         string targetClassName
     )
     {
-        var targetMappingCandidates = memberDeclarationSyntax
-            .AttributeLists.SelectMany(x => x.Attributes)
-            .Where(a => a.Name is IdentifierNameSyntax { Identifier.ValueText: "Mapping" })
+        var targetMappingCandidates = attributes
+            .Where(a => a.AttributeClass!.Name == "MappingAttribute")
             .ToList();
+
 
         return targetMappingCandidates.Count switch
         {
             0 => null,
-            1 => targetMappingCandidates.FirstOrDefault(x => x.ArgumentList != null),
-            _ => targetMappingCandidates.SingleOrDefault(x =>
-                x.ArgumentList != null
-                && x.ArgumentList.Arguments.Any(arg =>
-                    arg.Expression
-                        is TypeOfExpressionSyntax
-                    {
-                        Type: IdentifierNameSyntax identifierNameSyntax
-                    }
-                    && identifierNameSyntax.Identifier.Text == targetClassName
-                )
-            ),
+            1 => targetMappingCandidates.FirstOrDefault(),
+            _ => targetMappingCandidates.SingleOrDefault(attr => attr.NamedArguments.Any(
+                arg => arg.Key == "TargetType"
+                       && (arg.Value.Value as ISymbol).Name == targetClassName))
         };
-    }
-
-    public static AttributeSyntax? GetMatchingMappingAttribute(
-        this ParameterSyntax parameter,
-        string targetClassName
-    )
-    {
-        var targetMappingCandidates = parameter
-            .AttributeLists.SelectMany(x => x.Attributes)
-            .Where(a => a.Name is IdentifierNameSyntax { Identifier.ValueText: "Mapping" })
-            .ToList();
-
-        return targetMappingCandidates.Count switch
-        {
-            0 => null,
-            1 => targetMappingCandidates.FirstOrDefault(x => x.ArgumentList != null),
-            _ => targetMappingCandidates.SingleOrDefault(x =>
-                x.ArgumentList != null
-                && x.ArgumentList.Arguments.Any(arg =>
-                    arg.Expression
-                        is TypeOfExpressionSyntax
-                    {
-                        Type: IdentifierNameSyntax identifierNameSyntax
-                    }
-                    && identifierNameSyntax.Identifier.Text == targetClassName
-                )
-            ),
-        };
-    }
-
-    public static TypeDeclarationSyntax? TypeDeclarationSyntaxFromSymbolInfo(
-        this SymbolInfo targetSymbolInfo
-    )
-    {
-        if (
-            targetSymbolInfo.Symbol
-            is not INamedTypeSymbol { DeclaringSyntaxReferences.Length: > 0 } targetNamedType
-        )
-            return null;
-
-        var node = targetNamedType.DeclaringSyntaxReferences[0].GetSyntax();
-        if (node is TypeDeclarationSyntax typeDeclarationSyntax)
-        {
-            return typeDeclarationSyntax;
-        }
-
-        return null;
     }
 
     private static string ImplicitPrimitiveConversionTo(
@@ -112,19 +58,19 @@ public static class SyntaxHelpers
                 $"UInt64.Parse({sourceIdentifier})",
 
             (SpecialType.System_Single, SpecialType.System_String)
-            or
-            (SpecialType.System_Int16, SpecialType.System_String)
-            or
-            (SpecialType.System_Int32, SpecialType.System_String)
-            or
-            (SpecialType.System_Int64, SpecialType.System_String)
-            or
-            (SpecialType.System_UInt16, SpecialType.System_String)
-            or
-            (SpecialType.System_UInt32, SpecialType.System_String)
-            or
-            (SpecialType.System_String, SpecialType.System_Enum)
-            or (SpecialType.System_UInt64, SpecialType.System_String) =>
+                or
+                (SpecialType.System_Int16, SpecialType.System_String)
+                or
+                (SpecialType.System_Int32, SpecialType.System_String)
+                or
+                (SpecialType.System_Int64, SpecialType.System_String)
+                or
+                (SpecialType.System_UInt16, SpecialType.System_String)
+                or
+                (SpecialType.System_UInt32, SpecialType.System_String)
+                or
+                (SpecialType.System_String, SpecialType.System_Enum)
+                or (SpecialType.System_UInt64, SpecialType.System_String) =>
                 $"{sourceIdentifier}.ToString(System.Globalization.CultureInfo.InvariantCulture)",
             _ => $"{sourceIdentifier}.MapTo{target.Name}()",
         };
