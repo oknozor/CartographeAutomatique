@@ -12,7 +12,7 @@ public enum MappingStrategyInternal
     Setter,
 }
 
-internal class TypeMapping(
+public class TypeMapping(
     MappingKind mappingKind,
     TypeDeclarationSyntax sourceType,
     TypeDeclarationSyntax targetType,
@@ -26,6 +26,8 @@ internal class TypeMapping(
     {
         foreach (var intermediateDiagnostic in diagnostics) 
             sourceProductionContext.ReportDiagnostic(intermediateDiagnostic.ToDiagnostic());
+
+        sourceProductionContext.ReportDiagnostic(InfoDiagnostic());
         
         var activeStrategy = TargetIsRecord() switch
         {
@@ -257,4 +259,14 @@ internal class TypeMapping(
             MappingKind.MapFrom => sourceType,
             _ => throw new ArgumentOutOfRangeException(nameof(mappingKind), mappingKind, null),
         };
+
+    private Diagnostic InfoDiagnostic() =>
+        Diagnostic.Create(new DiagnosticDescriptor(
+            "CA8_GEN",
+        "CA Gen",
+            $"Generating mapper from {SourceNameSpace()}.{SourceClassName} to {TargetNameSpace()}.{TargetClassName}",
+            "Usage",
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true
+        ), Location.None);
 }

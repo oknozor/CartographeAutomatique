@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace CartographeAutomatique;
 
-enum MappingKind
+public enum MappingKind
 {
     MapTo,
     MapFrom,
@@ -66,6 +66,10 @@ public class CartographeGenerator : IIncrementalGenerator
             )
             {
                 var targetTypeArgument = arguments?.FirstOrDefault();
+                if (targetTypeArgument == null)
+                {
+                    
+                }
                 var exhaustive = IsExhaustive(arguments);
                 var strategy = GetMappingStrategy(arguments);
 

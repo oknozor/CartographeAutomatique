@@ -2,13 +2,13 @@ using Microsoft.CodeAnalysis;
 
 namespace CartographeAutomatique;
 
-public record IntermediateDiagnostic(string message)
+public record IntermediateDiagnostic(string Message)
 {
     internal Diagnostic ToDiagnostic() =>
         Diagnostic.Create(new DiagnosticDescriptor(
             "CA8_GEN",
             "CArtograpeGeneratorError",
-            message,
+            Message,
             "Usage",
             DiagnosticSeverity.Error,
             isEnabledByDefault: true
