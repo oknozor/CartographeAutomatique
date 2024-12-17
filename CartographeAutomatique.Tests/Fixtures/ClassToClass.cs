@@ -7,7 +7,7 @@ public class ClassToClass : IFixture
         """
             namespace TestNamespace;
 
-            [CartographeAutomatique.MapTo(typeof(Point)]
+            [CartographeAutomatique.MapTo(typeof(TestNamespace.Point)]
             public partial class Vector3
             {
 
@@ -15,13 +15,6 @@ public class ClassToClass : IFixture
                 public float Y { get; set; }
                 public float Z { get; set; }
             }
-
-            public partial class Point
-            {
-                public float X { get; set; }
-                public float Y { get; set; }
-                public float Z { get; set; }
-            };
             """;
 
     private const string Expected =

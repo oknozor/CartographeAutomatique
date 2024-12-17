@@ -1,10 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
 namespace CartographeAutomatique;
@@ -20,6 +19,11 @@ public class CartographeGenerator : IIncrementalGenerator
 {
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
+        if (!Debugger.IsAttached)
+        {
+            Debugger.Launch();
+        }
+
         context.RegisterPostInitializationOutput(ctx =>
             ctx.AddSource(
                 "MapToAttribute.g.cs",
@@ -29,13 +33,13 @@ public class CartographeGenerator : IIncrementalGenerator
 
         var mapToPipeline = context.SyntaxProvider.ForAttributeWithMetadataName(
             fullyQualifiedMetadataName: "CartographeAutomatique.MapToAttribute",
-            predicate: static (syntaxNode, _) => syntaxNode is TypeDeclarationSyntax,
+            predicate: static (syntaxNode, _) => true,
             transform: static (context, _) => PopulateTypeMapping(context, MappingKind.MapTo)
         );
 
         var mapFromPipeline = context.SyntaxProvider.ForAttributeWithMetadataName(
             fullyQualifiedMetadataName: "CartographeAutomatique.MapFromAttribute",
-            predicate: static (syntaxNode, _) => syntaxNode is TypeDeclarationSyntax,
+            predicate: static (syntaxNode, _) => true,
             transform: static (context, _) => PopulateTypeMapping(context, MappingKind.MapFrom)
         );
 
@@ -55,56 +59,47 @@ public class CartographeGenerator : IIncrementalGenerator
         MappingKind mappingKind
     )
     {
-        var typeDeclarationSyntax = (context.TargetNode as TypeDeclarationSyntax)!;
         var classMappings = new List<TypeMapping>();
         var diagnostics = new List<IntermediateDiagnostic>();
+        var attributes = context.Attributes
+            .Where(attr => attr.AttributeClass!.Name is "MapToAttribute" or "MapFromAttribute");
+        var sourceType = context.TargetSymbol as INamedTypeSymbol;
 
-        foreach (var attributeListSyntax in typeDeclarationSyntax.AttributeLists)
-            foreach (
-                var arguments in from attributeSyntax in attributeListSyntax.Attributes
-                                 select attributeSyntax.ArgumentList?.Arguments
-            )
-            {
-                var targetTypeArgument = arguments?.FirstOrDefault();
-                if (targetTypeArgument == null)
-                {
-                    
-                }
-                var exhaustive = IsExhaustive(arguments);
-                var strategy = GetMappingStrategy(arguments);
+        foreach (var attribute in attributes)
+        {
+            var targetType = attribute.ConstructorArguments[0].Value as INamedTypeSymbol;
+            var defaultExhaustiveness = (bool)attribute.AttributeConstructor!.Parameters[1].ExplicitDefaultValue!;
+            var defaultMappingStrategy =
+                (MappingStrategyInternal)(int)attribute.AttributeConstructor.Parameters[2].ExplicitDefaultValue!;
 
-                if (targetTypeArgument?.Expression is not TypeOfExpressionSyntax typeOfExpressionSyntax)
-                    continue;
+            var isExhaustiveArg = attribute.NamedArguments
+                .SingleOrDefault(arg => arg.Key == "Exhaustive")
+                .Value
+                .Value;
 
-                var targetIdentifierName = typeOfExpressionSyntax.Type as IdentifierNameSyntax;
-                var targetSymbolInfo = ModelExtensions.GetSymbolInfo(
-                    context.SemanticModel,
-                    targetIdentifierName!
-                );
-                var targetTypeSyntax = targetSymbolInfo.TypeDeclarationSyntaxFromSymbolInfo();
+            var isExhaustive = isExhaustiveArg is not null ? (bool)isExhaustiveArg : defaultExhaustiveness;
 
-                if (targetTypeSyntax is null)
-                {
-                    diagnostics.Add(
-                        new IntermediateDiagnostic(
-                            $"Unable to resolve target type symbol {targetIdentifierName} on {typeDeclarationSyntax.Identifier.Text} mapping"
-                            ));
-                    
-                    continue;
-                }
+            var mappingStrategyArg = attribute.NamedArguments
+                .SingleOrDefault(arg => arg.Key == "MappingStrategy")
+                .Value
+                .Value;
 
-                classMappings.Add(
-                    new TypeMapping(
-                        mappingKind,
-                        typeDeclarationSyntax,
-                        targetTypeSyntax,
-                        exhaustive,
-                        strategy,
-                        context,
-                        diagnostics
-                    )
-                );
-            }
+            var mappingStrategy = mappingStrategyArg is not null
+                ? (MappingStrategyInternal)(int)mappingStrategyArg
+                : defaultMappingStrategy;
+
+            classMappings.Add(
+                new TypeMapping(
+                    mappingKind,
+                    sourceType!,
+                    targetType!,
+                    isExhaustive,
+                    mappingStrategy,
+                    context,
+                    diagnostics
+                )
+            );
+        }
 
         return classMappings;
     }
@@ -121,39 +116,13 @@ public class CartographeGenerator : IIncrementalGenerator
             var sourceFileName = mappingKind switch
             {
                 MappingKind.MapTo =>
-                    $"{classMapping.SourceNameSpace()}_{classMapping.SourceClassName}To{classMapping.TargetNameSpace()}_{classMapping.TargetClassName}.g.cs",
+                    $"{classMapping.SourceNameSpace()}_{classMapping.SourceType().Name}To{classMapping.TargetNameSpace()}_{classMapping.TargetType().Name}.g.cs",
                 MappingKind.MapFrom =>
-                    $"{classMapping.SourceNameSpace()}_{classMapping.SourceClassName}From{classMapping.TargetNameSpace()}_{classMapping.TargetClassName}.g.cs",
+                    $"{classMapping.SourceNameSpace()}_{classMapping.SourceType().Name}From{classMapping.TargetNameSpace()}_{classMapping.TargetType().Name}.g.cs",
                 _ => throw new ArgumentOutOfRangeException(nameof(mappingKind), mappingKind, null),
             };
 
             context.AddSource(sourceFileName, SourceText.From(generatedMapping, Encoding.UTF8));
         }
-    }
-
-    private static MappingStrategyInternal GetMappingStrategy(
-        SeparatedSyntaxList<AttributeArgumentSyntax>? arguments
-    )
-    {
-        var strategy =
-            arguments
-                ?.SingleOrDefault(arg => arg.NameEquals?.Name.ToString() == "MappingStrategy")
-                ?.Expression as MemberAccessExpressionSyntax;
-
-        return strategy?.Name.ToString() switch
-        {
-            "Constructor" => MappingStrategyInternal.Constructor,
-            _ => MappingStrategyInternal.Setter,
-        };
-    }
-
-    private static bool IsExhaustive(SeparatedSyntaxList<AttributeArgumentSyntax>? arguments)
-    {
-        var exhaustiveArgument =
-            arguments
-                ?.SingleOrDefault(arg => arg.NameEquals?.Name.ToString() == "Exhaustive")
-                ?.Expression as LiteralExpressionSyntax;
-
-        return exhaustiveArgument?.Kind() == SyntaxKind.TrueLiteralExpression;
     }
 }
