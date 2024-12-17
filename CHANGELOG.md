@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## [0.3.0](https://github.com/cocogitto/CartographeAutomatique/compare/0.2.0..0.3.0) - 2024-12-17
+#### Features
+- add debug diags - ([b549376](https://github.com/cocogitto/CartographeAutomatique/commit/b54937663765a52874f25277f888840bf10b0593)) - [@oknozor](https://github.com/oknozor)
+
+- - -
+
 ## [0.2.0](https://github.com/cocogitto/CartographeAutomatique/compare/0.1.2..0.2.0) - 2024-12-17
 #### Features
 - add simple diagnostics - ([41b2937](https://github.com/cocogitto/CartographeAutomatique/commit/41b2937ca4c838f257abc4bf5ec4299f931fa858)) - [@oknozor](https://github.com/oknozor)
