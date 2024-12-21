@@ -17,17 +17,14 @@ public class TypeMapping(
     INamedTypeSymbol targetType,
     bool exhaustive,
     MappingStrategyInternal strategy,
-    GeneratorAttributeSyntaxContext context,
-    List<IntermediateDiagnostic> diagnostics
+    List<Diagnostic> diagnostics
 )
 {
     public string GenerateMapping(SourceProductionContext sourceProductionContext)
     {
-        foreach (var intermediateDiagnostic in diagnostics)
-            sourceProductionContext.ReportDiagnostic(intermediateDiagnostic.ToDiagnostic());
-
-        sourceProductionContext.ReportDiagnostic(InfoDiagnostic());
-
+        foreach (var diagnostic in diagnostics)
+            sourceProductionContext.ReportDiagnostic(diagnostic);
+        
         var activeStrategy = TargetIsRecord() switch
         {
             true => MappingStrategyInternal.Constructor,
@@ -86,7 +83,16 @@ public class TypeMapping(
             if (exhaustive is false)
                 return null;
 
-            throw new Exception("invalid mapping");
+            diagnostics.Add(Diagnostic.Create(new DiagnosticDescriptor(
+                "CA_EX",
+                "CartographeGeneratorError",
+                $"No field matching {SourceNameSpace()}.{SourceType().Name}.{targetFieldName} found in {TargetNameSpace()}.{TargetType().Name}",
+                "Exhaustive Mapping",
+                DiagnosticSeverity.Error,
+                isEnabledByDefault: true
+            ), SourceType().Locations.First(loc => loc.Kind == LocationKind.SourceFile)));
+
+            return null;
         }
 
         var targetTypeSymbol = targetProp.Type;
@@ -173,7 +179,7 @@ public class TypeMapping(
         {
             MappingKind.MapTo => sourceType,
             MappingKind.MapFrom => targetType,
-            _ => throw new ArgumentOutOfRangeException(nameof(mappingKind), mappingKind, null),
+            _ => throw new ArgumentOutOfRangeException(nameof(mappingKind), mappingKind, null)
         };
 
     public INamedTypeSymbol TargetType() =>
@@ -181,16 +187,6 @@ public class TypeMapping(
         {
             MappingKind.MapTo => targetType,
             MappingKind.MapFrom => sourceType,
-            _ => throw new ArgumentOutOfRangeException(nameof(mappingKind), mappingKind, null),
+            _ => throw new ArgumentOutOfRangeException(nameof(mappingKind), mappingKind, null)
         };
-
-    private Diagnostic InfoDiagnostic() =>
-        Diagnostic.Create(new DiagnosticDescriptor(
-            "CA8_GEN",
-            "CA Gen",
-            $"Generating mapper from {SourceNameSpace()}.{SourceType().Name} to {TargetNameSpace()}.{TargetType().Name}",
-            "Usage",
-            DiagnosticSeverity.Warning,
-            isEnabledByDefault: true
-        ), Location.None);
 }

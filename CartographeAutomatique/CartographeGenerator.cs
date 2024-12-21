@@ -33,13 +33,13 @@ public class CartographeGenerator : IIncrementalGenerator
 
         var mapToPipeline = context.SyntaxProvider.ForAttributeWithMetadataName(
             fullyQualifiedMetadataName: "CartographeAutomatique.MapToAttribute",
-            predicate: static (syntaxNode, _) => true,
+            predicate: static (_, _) => true,
             transform: static (context, _) => PopulateTypeMapping(context, MappingKind.MapTo)
         );
 
         var mapFromPipeline = context.SyntaxProvider.ForAttributeWithMetadataName(
             fullyQualifiedMetadataName: "CartographeAutomatique.MapFromAttribute",
-            predicate: static (syntaxNode, _) => true,
+            predicate: static (_, _) => true,
             transform: static (context, _) => PopulateTypeMapping(context, MappingKind.MapFrom)
         );
 
@@ -60,7 +60,7 @@ public class CartographeGenerator : IIncrementalGenerator
     )
     {
         var classMappings = new List<TypeMapping>();
-        var diagnostics = new List<IntermediateDiagnostic>();
+        var diagnostics = new List<Diagnostic>();
         var attributes = context.Attributes
             .Where(attr => attr.AttributeClass!.Name is "MapToAttribute" or "MapFromAttribute");
         var sourceType = context.TargetSymbol as INamedTypeSymbol;
@@ -95,7 +95,6 @@ public class CartographeGenerator : IIncrementalGenerator
                     targetType!,
                     isExhaustive,
                     mappingStrategy,
-                    context,
                     diagnostics
                 )
             );
@@ -119,7 +118,7 @@ public class CartographeGenerator : IIncrementalGenerator
                     $"{classMapping.SourceNameSpace()}_{classMapping.SourceType().Name}To{classMapping.TargetNameSpace()}_{classMapping.TargetType().Name}.g.cs",
                 MappingKind.MapFrom =>
                     $"{classMapping.SourceNameSpace()}_{classMapping.SourceType().Name}From{classMapping.TargetNameSpace()}_{classMapping.TargetType().Name}.g.cs",
-                _ => throw new ArgumentOutOfRangeException(nameof(mappingKind), mappingKind, null),
+                _ => throw new ArgumentOutOfRangeException(nameof(mappingKind), mappingKind, null)
             };
 
             context.AddSource(sourceFileName, SourceText.From(generatedMapping, Encoding.UTF8));

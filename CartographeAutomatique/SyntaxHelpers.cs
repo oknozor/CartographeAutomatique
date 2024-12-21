@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace CartographeAutomatique;
 
@@ -24,7 +23,7 @@ public static class SyntaxHelpers
             1 => targetMappingCandidates.FirstOrDefault(),
             _ => targetMappingCandidates.SingleOrDefault(attr => attr.NamedArguments.Any(
                 arg => arg.Key == "TargetType"
-                       && (arg.Value.Value as ISymbol).Name == targetClassName))
+                       && (arg.Value.Value as ISymbol)?.Name == targetClassName))
         };
     }
 
@@ -72,7 +71,7 @@ public static class SyntaxHelpers
                 (SpecialType.System_String, SpecialType.System_Enum)
                 or (SpecialType.System_UInt64, SpecialType.System_String) =>
                 $"{sourceIdentifier}.ToString(System.Globalization.CultureInfo.InvariantCulture)",
-            _ => $"{sourceIdentifier}.MapTo{target.Name}()",
+            _ => $"{sourceIdentifier}.MapTo{target.Name}()"
         };
     }
 
@@ -102,7 +101,7 @@ public static class SyntaxHelpers
             _ when targetType.IsArray() => "ToArray()",
             "List" => "ToList()",
             "ImmutableList" => "ToImmutableList()",
-            _ => null,
+            _ => null
         };
 
         if (converter is null)
