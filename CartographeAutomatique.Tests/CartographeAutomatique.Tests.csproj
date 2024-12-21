@@ -3,10 +3,9 @@
     <PropertyGroup>
         <TargetFramework>net8.0</TargetFramework>
         <Nullable>enable</Nullable>
-
         <IsPackable>false</IsPackable>
-
         <RootNamespace>CartographeAutomatique.Tests</RootNamespace>
+        <NoWarn>$(NoWarn);NU1608</NoWarn>
     </PropertyGroup>
 
     <ItemGroup>
