@@ -14,7 +14,7 @@ public class ClassToRecordMapping
     [Fact]
     void Should_map_record_to_class()
     {
-        Truck truck = new Truck() { Color = "Red", Brand = "Peugeot" };
+        Truck truck = new Truck { Color = "Red", Brand = "Peugeot" };
         Vehicle vehicle = truck.MapToVehicle();
     }
 }
