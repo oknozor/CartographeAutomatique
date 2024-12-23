@@ -33,11 +33,31 @@ public static class SyntaxHelpers
         string sourceIdentifier
     )
     {
+        var notSpecialTypeTarget = target.SpecialType == SpecialType.None;
         var isSameType = target.Name == source.Name 
                          && target.ContainingNamespace.Name == source.ContainingNamespace.Name;
-       
+
         if (isSameType)
             return sourceIdentifier;
+
+        if (notSpecialTypeTarget)
+        {
+            var constructorWithSingleArgument 
+                = (target.OriginalDefinition as INamedTypeSymbol)?.Constructors
+                .SingleOrDefault(constructor => constructor.Parameters.Length == 1);
+
+            if (constructorWithSingleArgument is not null)
+            {
+                var arg = constructorWithSingleArgument.Parameters.First();
+                var sameType = arg.Type.Name == source.Name 
+                               && arg.Type.ContainingNamespace.Name == source.ContainingNamespace.Name;
+
+                if (sameType)
+                {
+                    return $"new {target.Name}({sourceIdentifier})";
+                }
+            }
+        }
 
         return (source.SpecialType, target.SpecialType) switch
         {

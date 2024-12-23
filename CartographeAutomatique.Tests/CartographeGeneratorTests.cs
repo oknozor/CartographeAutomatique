@@ -90,6 +90,9 @@ public class CartographeGeneratorTests
     public void GenerateNestedClass() =>
         CodeGenerationAssertion(new NestedClass().GetAssertion());
 
+    [Fact]
+    public void GenerateSingleArgConstructorPropertyMaping() =>
+        CodeGenerationAssertion(new PropertyWithSingleArgConstructor().GetAssertion());
     
     private static void CodeGenerationAssertion(SourceGenerationAssertion assertion)
     {
