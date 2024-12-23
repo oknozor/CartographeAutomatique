@@ -33,10 +33,11 @@ public static class SyntaxHelpers
         string sourceIdentifier
     )
     {
-        if (target.SpecialType != SpecialType.None && source.SpecialType == target.SpecialType)
-        {
+        var isSameType = target.Name == source.Name 
+                         && target.ContainingNamespace.Name == source.ContainingNamespace.Name;
+       
+        if (isSameType)
             return sourceIdentifier;
-        }
 
         return (source.SpecialType, target.SpecialType) switch
         {

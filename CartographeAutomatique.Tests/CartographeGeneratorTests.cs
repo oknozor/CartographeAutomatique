@@ -86,6 +86,11 @@ public class CartographeGeneratorTests
     public void GenerateDocSample() =>
         CodeGenerationAssertion(new DocSample().GetAssertion());
 
+    [Fact]
+    public void GenerateNestedClass() =>
+        CodeGenerationAssertion(new NestedClass().GetAssertion());
+
+    
     private static void CodeGenerationAssertion(SourceGenerationAssertion assertion)
     {
         var generator = new CartographeGenerator();
