@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## [0.6.0](https://github.com/cocogitto/CartographeAutomatique/compare/0.5.0..0.6.0) - 2025-01-02
+#### Bug Fixes
+- fix single arg constructor mapping - ([403f3d8](https://github.com/cocogitto/CartographeAutomatique/commit/403f3d8ea99603130af35c56cab44e849fde887b)) - [@oknozor](https://github.com/oknozor)
+#### Features
+- add enum implicit convertion - ([6e8abc1](https://github.com/cocogitto/CartographeAutomatique/commit/6e8abc18b66a3c73a5e79f51531d6e21feb051e6)) - [@oknozor](https://github.com/oknozor)
+- add immutable array implicit mapping - ([528bf1c](https://github.com/cocogitto/CartographeAutomatique/commit/528bf1ca83641ea075300bec08f4924fe889ed38)) - [@oknozor](https://github.com/oknozor)
+
+- - -
+
 ## [0.5.0](https://github.com/cocogitto/CartographeAutomatique/compare/0.4.1..0.5.0) - 2024-12-23
 #### Features
 - add implicit mapping for single arg constructor wrapper type - ([c469919](https://github.com/cocogitto/CartographeAutomatique/commit/c469919f5a64d7f3cb46b99e9709cf1e777b0ef0)) - [@oknozor](https://github.com/oknozor)
