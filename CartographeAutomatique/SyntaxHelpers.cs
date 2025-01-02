@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 
@@ -34,7 +35,7 @@ public static class SyntaxHelpers
     )
     {
         var notSpecialTypeTarget = target.SpecialType == SpecialType.None;
-        var isSameType = target.Name == source.Name 
+        var isSameType = target.Name == source.Name
                          && target.ContainingNamespace.Name == source.ContainingNamespace.Name;
 
         if (isSameType)
@@ -42,14 +43,14 @@ public static class SyntaxHelpers
 
         if (notSpecialTypeTarget)
         {
-            var constructorWithSingleArgument 
+            var constructorWithSingleArgument
                 = (target.OriginalDefinition as INamedTypeSymbol)?.Constructors
                 .FirstOrDefault(constructor => constructor.Parameters.Length == 1);
 
             if (constructorWithSingleArgument is not null)
             {
                 var arg = constructorWithSingleArgument.Parameters.First();
-                var sameType = arg.Type.Name == source.Name 
+                var sameType = arg.Type.Name == source.Name
                                && arg.Type.ContainingNamespace.Name == source.ContainingNamespace.Name;
 
                 if (sameType)
@@ -59,7 +60,11 @@ public static class SyntaxHelpers
             }
         }
 
-        return (source.SpecialType, target.SpecialType) switch
+        // This is probably a misuse of special types but special type enum is never set
+        var targetSpecialType = target.TypeKind == TypeKind.Enum ? SpecialType.System_Enum : target.SpecialType;
+        var sourceSpecialType = source.TypeKind == TypeKind.Enum ? SpecialType.System_Enum : source.SpecialType;
+        
+        return (sourceSpecialType, targetSpecialType) switch
         {
             // TODO: Complete with relevant special types (AKA built-in types), all cases cannot be covered though
             (SpecialType.System_String, SpecialType.System_Single) =>
@@ -76,7 +81,17 @@ public static class SyntaxHelpers
                 $"UInt32.Parse({sourceIdentifier})",
             (SpecialType.System_String, SpecialType.System_UInt64) =>
                 $"UInt64.Parse({sourceIdentifier})",
-
+            (SpecialType.System_String, SpecialType.System_Enum) =>
+                $"({target.Name})Enum.Parse(typeof({target.Name}), {sourceIdentifier})",
+            (SpecialType.System_Enum, SpecialType.System_String) =>
+                $"{sourceIdentifier}.ToString()",
+            (SpecialType.System_Int16, SpecialType.System_Enum)
+                or (SpecialType.System_Int32, SpecialType.System_Enum)
+                or (SpecialType.System_Int64, SpecialType.System_Enum)
+                => $"({target.Name}){sourceIdentifier}",
+            (SpecialType.System_Enum, SpecialType.System_Int16) => $"(short){sourceIdentifier}",
+            (SpecialType.System_Enum, SpecialType.System_Int32) => $"(int){sourceIdentifier}",
+            (SpecialType.System_Enum, SpecialType.System_Int64) => $"(long){sourceIdentifier}",
             (SpecialType.System_Single, SpecialType.System_String)
                 or
                 (SpecialType.System_Int16, SpecialType.System_String)

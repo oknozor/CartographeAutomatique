@@ -91,9 +91,13 @@ public class CartographeGeneratorTests
         CodeGenerationAssertion(new NestedClass().GetAssertion());
 
     [Fact]
-    public void GenerateSingleArgConstructorPropertyMaping() =>
+    public void GenerateSingleArgConstructorPropertyMapping() =>
         CodeGenerationAssertion(new PropertyWithSingleArgConstructor().GetAssertion());
     
+    [Fact]
+    public void EnumImplicitConversionMapping() =>
+        CodeGenerationAssertion(new EnumImplicitConversions().GetAssertion());
+
     private static void CodeGenerationAssertion(SourceGenerationAssertion assertion)
     {
         var generator = new CartographeGenerator();
