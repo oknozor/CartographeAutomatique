@@ -122,6 +122,7 @@ public static class SyntaxHelpers
             _ when targetType.IsArray() => "ToArray()",
             "List" => "ToList()",
             "ImmutableList" => "ToImmutableList()",
+            "ImmutableArray" => "ToImmutableArray()",
             _ => null
         };
 
