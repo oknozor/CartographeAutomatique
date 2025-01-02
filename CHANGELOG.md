@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## [0.6.1](https://github.com/cocogitto/CartographeAutomatique/compare/0.6.0..0.6.1) - 2025-01-02
+#### Bug Fixes
+- fully qualified target name - ([5ff11e0](https://github.com/cocogitto/CartographeAutomatique/commit/5ff11e0bba202228037aa1d4101c6e3dca25b8d8)) - [@oknozor](https://github.com/oknozor)
+
+- - -
+
 ## [0.6.0](https://github.com/cocogitto/CartographeAutomatique/compare/0.5.0..0.6.0) - 2025-01-02
 #### Bug Fixes
 - fix single arg constructor mapping - ([403f3d8](https://github.com/cocogitto/CartographeAutomatique/commit/403f3d8ea99603130af35c56cab44e849fde887b)) - [@oknozor](https://github.com/oknozor)
