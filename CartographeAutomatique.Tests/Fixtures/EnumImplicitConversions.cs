@@ -63,10 +63,10 @@ public class EnumImplicitConversions: IFixture
             public static TestNamespace.EnumColors MapToEnumColors(this TestNamespace.PrimitiveColors source) =>
                	new()
         		{
-        			StrColor = (Color)Enum.Parse(typeof(Color), source.StrColor),
-        			ShortColor = (Color)source.ShortColor,
-        			IntColor = (Color)source.IntColor,
-        			LongColor = (Color)source.LongColor
+        			StrColor = (TestNamespace.Color)Enum.Parse(typeof(TestNamespace.Color), source.StrColor),
+        			ShortColor = (TestNamespace.Color)source.ShortColor,
+        			IntColor = (TestNamespace.Color)source.IntColor,
+        			LongColor = (TestNamespace.Color)source.LongColor
         		};
         }
         """;

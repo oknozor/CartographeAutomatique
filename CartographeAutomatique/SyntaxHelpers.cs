@@ -35,8 +35,7 @@ public static class SyntaxHelpers
     )
     {
         var notSpecialTypeTarget = target.SpecialType == SpecialType.None;
-        var isSameType = target.Name == source.Name
-                         && target.ContainingNamespace.Name == source.ContainingNamespace.Name;
+        var isSameType = target.FullyQualifiedName() == source.FullyQualifiedName();
 
         if (isSameType)
             return sourceIdentifier;
@@ -55,7 +54,7 @@ public static class SyntaxHelpers
 
                 if (sameType)
                 {
-                    return $"new {target.Name}({sourceIdentifier})";
+                    return $"new {target.FullyQualifiedName()}({sourceIdentifier})";
                 }
             }
         }
@@ -82,13 +81,13 @@ public static class SyntaxHelpers
             (SpecialType.System_String, SpecialType.System_UInt64) =>
                 $"UInt64.Parse({sourceIdentifier})",
             (SpecialType.System_String, SpecialType.System_Enum) =>
-                $"({target.Name})Enum.Parse(typeof({target.Name}), {sourceIdentifier})",
+                $"({target.FullyQualifiedName()})Enum.Parse(typeof({target.FullyQualifiedName()}), {sourceIdentifier})",
             (SpecialType.System_Enum, SpecialType.System_String) =>
                 $"{sourceIdentifier}.ToString()",
             (SpecialType.System_Int16, SpecialType.System_Enum)
                 or (SpecialType.System_Int32, SpecialType.System_Enum)
                 or (SpecialType.System_Int64, SpecialType.System_Enum)
-                => $"({target.Name}){sourceIdentifier}",
+                => $"({target.FullyQualifiedName()}){sourceIdentifier}",
             (SpecialType.System_Enum, SpecialType.System_Int16) => $"(short){sourceIdentifier}",
             (SpecialType.System_Enum, SpecialType.System_Int32) => $"(int){sourceIdentifier}",
             (SpecialType.System_Enum, SpecialType.System_Int64) => $"(long){sourceIdentifier}",
@@ -178,4 +177,7 @@ public static class SyntaxHelpers
         return char.ToLowerInvariant(src[0]).Equals(char.ToLowerInvariant(other[0])) &&
                string.Equals(src.Substring(1), other.Substring(1), StringComparison.Ordinal);
     }
+
+    private static string FullyQualifiedName(this ITypeSymbol typeSymbol) =>
+        $"{typeSymbol.ContainingNamespace.ToDisplayString()}.{typeSymbol.Name}";
 }

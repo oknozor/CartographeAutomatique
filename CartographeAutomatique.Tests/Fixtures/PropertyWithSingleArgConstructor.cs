@@ -42,7 +42,7 @@ public class PropertyWithSingleArgConstructor: IFixture
             public static TestNamespace.B MapToB(this TestNamespace.A source) =>
                	new()
         		{
-        			C = new C(source.C)
+        			C = new TestNamespace.C(source.C)
         		};
         }
         """;
