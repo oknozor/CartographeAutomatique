@@ -32,8 +32,8 @@ public class TypeMapping(
         };
 
         var assignations = GenerateAllAssignation(activeStrategy);
-        var sourceNameSpace = SourceNameSpace()!;
-        var targetNameSpace = TargetNameSpace()!;
+        var sourceNameSpace = SourceNameSpace();
+        var targetNameSpace = TargetNameSpace();
 
         var joinedAssignation = activeStrategy switch
         {

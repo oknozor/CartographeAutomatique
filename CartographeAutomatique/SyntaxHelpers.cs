@@ -44,7 +44,7 @@ public static class SyntaxHelpers
         {
             var constructorWithSingleArgument 
                 = (target.OriginalDefinition as INamedTypeSymbol)?.Constructors
-                .SingleOrDefault(constructor => constructor.Parameters.Length == 1);
+                .FirstOrDefault(constructor => constructor.Parameters.Length == 1);
 
             if (constructorWithSingleArgument is not null)
             {
