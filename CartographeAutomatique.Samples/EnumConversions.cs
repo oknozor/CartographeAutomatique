@@ -26,7 +26,7 @@ public class EnumConversions
 [MapFrom(typeof(EnumColors))]
 public class PrimitiveColors
 {
-    public string StrColor { get; set; }
+    public string? StrColor { get; set; }
     public short ShortColor { get; set; }
     public int IntColor { get; set; }
     public long LongColor { get; set; }
