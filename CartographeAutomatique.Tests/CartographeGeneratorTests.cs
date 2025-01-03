@@ -93,7 +93,15 @@ public class CartographeGeneratorTests
     [Fact]
     public void GenerateSingleArgConstructorPropertyMapping() =>
         CodeGenerationAssertion(new PropertyWithSingleArgConstructor().GetAssertion());
-    
+
+    [Fact]
+    public void GenerateSingleSourceTypePropertyMapping() =>
+        CodeGenerationAssertion(new SourceTypeSingleProperty().GetAssertion());
+
+    [Fact]
+    public void GenerateRecordSourceSingleTypeMemberMapping() =>
+        CodeGenerationAssertion(new RecordSourceTypeSingleMember().GetAssertion());
+
     [Fact]
     public void EnumImplicitConversionMapping() =>
         CodeGenerationAssertion(new EnumImplicitConversions().GetAssertion());

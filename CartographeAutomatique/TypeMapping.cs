@@ -24,7 +24,7 @@ public class TypeMapping(
     {
         foreach (var diagnostic in diagnostics)
             sourceProductionContext.ReportDiagnostic(diagnostic);
-        
+
         var activeStrategy = TargetIsRecord() switch
         {
             true => MappingStrategyInternal.Constructor,
@@ -156,9 +156,9 @@ public class TypeMapping(
                 .Select(prop =>
                     new PropertyOrParameter(prop.Type, prop.Name,
                         prop.GetAttributes().GetMatchingMappingAttribute(TargetType().Name)));
-        
+
         var constructor = SourceType().Constructors
-            .OrderByDescending(c => c.Parameters.Length) 
+            .OrderByDescending(c => c.Parameters.Length)
             .FirstOrDefault();
 
         return constructor?.Parameters.Select(targetParameter => new PropertyOrParameter(

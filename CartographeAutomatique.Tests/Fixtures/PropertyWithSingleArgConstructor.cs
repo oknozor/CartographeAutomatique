@@ -1,6 +1,6 @@
 namespace CartographeAutomatique.Tests;
 
-public class PropertyWithSingleArgConstructor: IFixture
+public class PropertyWithSingleArgConstructor : IFixture
 {
     private const string Source =
         //language=csharp

@@ -1,6 +1,6 @@
 namespace CartographeAutomatique.Tests;
 
-public class EnumImplicitConversions: IFixture
+public class EnumImplicitConversions : IFixture
 {
     private const string Source =
         //language=csharp
@@ -51,7 +51,7 @@ public class EnumImplicitConversions: IFixture
         		};
         }
         """;
-    
+
     private const string ExpectedEnumColorMapper =
         //language=csharp
         """

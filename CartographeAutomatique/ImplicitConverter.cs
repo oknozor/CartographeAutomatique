@@ -46,12 +46,12 @@ public static class ImplicitConverter
             .ImplicitConversionTo(targetType.InnerTypeSymbol(), "t");
         return $"{sourceMemberAccess}.Select(t => {collectionImplicitConversion}).{converter}";
     }
-    
-        private static string ImplicitPrimitiveConversionTo(
-        this ITypeSymbol source,
-        ITypeSymbol target,
-        string sourceIdentifier
-    )
+
+    private static string ImplicitPrimitiveConversionTo(
+    this ITypeSymbol source,
+    ITypeSymbol target,
+    string sourceIdentifier
+)
     {
         var notSpecialTypeTarget = target.SpecialType == None;
         var isSameType = target.FullyQualifiedName() == source.FullyQualifiedName();
@@ -78,10 +78,45 @@ public static class ImplicitConverter
             }
         }
 
+        if (!source.IsRecord)
+        {
+            var propertySymbols = source.GetMembers()
+                .OfType<IPropertySymbol>();
+
+            var isTypeWithSingleField = propertySymbols.Count() == 1;
+            if (isTypeWithSingleField)
+            {
+                var propertySymbol = propertySymbols.First();
+                var propertySymbolType = propertySymbol.Type;
+                var sameType = propertySymbolType.FullyQualifiedName() == target.FullyQualifiedName();
+                if (sameType)
+                    return $"{sourceIdentifier}.{propertySymbol.Name}";
+            }
+        }
+
+        if (source.IsRecord)
+        {
+            var recordWithSingleMember
+                = (source.OriginalDefinition as INamedTypeSymbol)?.Constructors
+                .FirstOrDefault(constructor => constructor.Parameters.Length == 1);
+
+            if (recordWithSingleMember is not null)
+            {
+                var arg = recordWithSingleMember.Parameters.First();
+                var sameType = arg.Type.Name == target.Name
+                               && arg.Type.ContainingNamespace.Name == target.ContainingNamespace.Name;
+
+                if (sameType)
+                {
+                    return $"{sourceIdentifier}.{arg.Name}";
+                }
+            }
+        }
+
         // This is probably a misuse of special types but special type enum is never set
         var targetSpecialType = target.TypeKind == TypeKind.Enum ? System_Enum : target.SpecialType;
         var sourceSpecialType = source.TypeKind == TypeKind.Enum ? System_Enum : source.SpecialType;
-        
+
         return (sourceSpecialType, targetSpecialType) switch
         {
             // TODO: Complete with relevant special types (AKA built-in types), all cases cannot be covered though
@@ -128,6 +163,4 @@ public static class ImplicitConverter
             _ => $"{sourceIdentifier}.MapTo{target.Name}()"
         };
     }
-
-
 }
