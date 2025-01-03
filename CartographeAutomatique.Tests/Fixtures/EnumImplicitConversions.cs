@@ -63,7 +63,7 @@ public class EnumImplicitConversions: IFixture
             public static TestNamespace.EnumColors MapToEnumColors(this TestNamespace.PrimitiveColors source) =>
                	new()
         		{
-        			StrColor = (TestNamespace.Color)Enum.Parse(typeof(TestNamespace.Color), source.StrColor),
+        			StrColor = Enum.Parse<TestNamespace.Color>(source.StrColor),
         			ShortColor = (TestNamespace.Color)source.ShortColor,
         			IntColor = (TestNamespace.Color)source.IntColor,
         			LongColor = (TestNamespace.Color)source.LongColor

@@ -81,7 +81,7 @@ public static class SyntaxHelpers
             (SpecialType.System_String, SpecialType.System_UInt64) =>
                 $"UInt64.Parse({sourceIdentifier})",
             (SpecialType.System_String, SpecialType.System_Enum) =>
-                $"({target.FullyQualifiedName()})Enum.Parse(typeof({target.FullyQualifiedName()}), {sourceIdentifier})",
+                $"Enum.Parse<{target.FullyQualifiedName()}>({sourceIdentifier})",
             (SpecialType.System_Enum, SpecialType.System_String) =>
                 $"{sourceIdentifier}.ToString()",
             (SpecialType.System_Int16, SpecialType.System_Enum)
